@@ -1,36 +1,39 @@
-import { Component } from '@angular/core';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Component, inject } from '@angular/core';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-register',
+  standalone: true,
   imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './register.html',
-  styleUrl: './register.css',
+  styleUrl: './register.css'
 })
 export class RegisterComponent {
-registerForm: FormGroup;
-constructor(private fb: FormBuilder) {
-    this.registerForm = this.fb.group({
-      fullName: ['', Validators.required],
-      email: ['', [Validators.required, Validators.email]],
-      phone: ['', Validators.required],
-      password: ['', [Validators.required, Validators.minLength(6)]],
-      role: ['CLIENT', Validators.required],
-      trade: [''],
-      location: ['']
-    });
-  }
+  private fb = inject(FormBuilder);
+  private router = inject(Router);
 
+  registerForm: FormGroup = this.fb.group({
+    rol: ['CLIENTE', [Validators.required]],
+    nombre: ['', [Validators.required, Validators.minLength(2)]],
+    apellido: ['', [Validators.required, Validators.minLength(2)]],
+    email: ['', [Validators.required, Validators.email]],
+    telefono: ['', [Validators.required, Validators.pattern('^[0-9]{10}$')]], // 10 dígitos
+    password: ['', [Validators.required, Validators.minLength(6)]],
+    // Campos adicionales para TRABAJADOR
+    zonaCobertura: [''],
+    descripcion: ['']
+  });
 
   isWorker(): boolean {
-    return this.registerForm.get('role')?.value === 'WORKER';
+    return this.registerForm.get('rol')?.value === 'TRABAJADOR';
   }
 
-  onSubmit() {
+  onSubmit(): void {
     if (this.registerForm.valid) {
-      console.log('Registro enviado:', this.registerForm.value);
-      // Próximamente se enviarán estos datos al backend
+      const formData = this.registerForm.value;
+      console.log('Datos listos para enviar al Backend NestJS:', formData);
+      // Aquí nos conectaremos con el servicio HTTP cuando el backend esté desplegado
     }
   }
 }

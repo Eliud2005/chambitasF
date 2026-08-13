@@ -1,0 +1,50 @@
+<section class="max-w-4xl mx-auto py-2">
+  <!-- Filtro Integrado -->
+ <app-job-filter 
+  (searchQuery)="onSearch($event)" 
+  (categoryChange)="onCategoryFilter($event)" 
+  (locationChange)="onLocationFilter($event)" 
+/>
+
+  <!-- Header de la lista -->
+  <div class="flex items-center justify-between mb-4 px-1">
+    <h2 class="text-xl font-bold text-gray-900">Ofertas Recientes</h2>
+    <span class="text-xs font-medium text-gray-500 bg-gray-100 px-2.5 py-1 rounded-md">
+      {{ filteredJobs().length }} disponibles
+    </span>
+  </div>
+
+  <!-- Grid Responsive de Tarjetas -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    @for (item of paginatedJobs(); track item.id) {
+      <app-job-card [job]="item" />
+    } @empty {
+      <div class="col-span-full text-center py-12 bg-white rounded-xl border border-dashed border-gray-300">
+        <p class="text-gray-500 text-sm">No se encontraron ofertas que coincidan con tu búsqueda.</p>
+      </div>
+    }
+  </div>
+
+  <!-- Barra de Paginación -->
+  @if (totalPages() > 1) {
+    <div class="flex items-center justify-between pt-6 mt-6 border-t border-gray-200">
+      <button
+        (click)="changePage(currentPage() - 1)"
+        [disabled]="currentPage() === 1"
+        class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-sm">
+        ← Anterior
+      </button>
+
+      <span class="text-sm text-gray-600 font-medium">
+        Página <strong class="text-gray-900">{{ currentPage() }}</strong> de {{ totalPages() }}
+      </span>
+
+      <button
+        (click)="changePage(currentPage() + 1)"
+        [disabled]="currentPage() === totalPages()"
+        class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-sm">
+        Siguiente →
+      </button>
+    </div>
+  }
+</section>

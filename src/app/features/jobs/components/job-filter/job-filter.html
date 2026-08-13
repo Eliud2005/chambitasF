@@ -1,0 +1,50 @@
+<div class="bg-white rounded-xl border border-gray-200 p-4 mb-6 shadow-sm">
+  
+  <!-- Barra de Búsqueda + Selector de Ubicación -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+    <!-- Input Búsqueda (Ocupa 2 columnas en Desktop) -->
+    <div class="relative md:col-span-2">
+      <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+        🔍
+      </div>
+      <input
+        type="text"
+        placeholder="Buscar por puesto o palabra clave..."
+        (input)="onSearchChange($event)"
+        class="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all placeholder:text-gray-400"
+      />
+    </div>
+
+    <!-- Select de Ubicación (Ocupa 1 columna) -->
+    <div class="relative">
+      <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+        📍
+      </div>
+      <select
+        (change)="onLocationChange($event)"
+        class="w-full pl-9 pr-8 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all appearance-none cursor-pointer">
+        @for (loc of locations; track loc) {
+          <option [value]="loc">{{ loc }}</option>
+        }
+      </select>
+      <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400 text-xs">
+        ▼
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtro por Categorías (Badges) -->
+  <div class="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+    @for (cat of categories; track cat) {
+      <button
+        (click)="selectCategory(cat)"
+        [class]="selectedCategory() === cat 
+          ? 'bg-blue-600 text-white font-medium' 
+          : 'bg-gray-100 text-gray-600 hover:bg-gray-200 font-normal'"
+        class="text-xs px-3.5 py-1.5 rounded-full whitespace-nowrap transition-colors">
+        {{ cat }}
+      </button>
+    }
+  </div>
+
+</div>

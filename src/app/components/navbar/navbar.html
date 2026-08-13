@@ -1,0 +1,41 @@
+<header class="bg-white border-b border-gray-200 sticky top-0 z-50">
+  <div class="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
+    
+    <!-- Brand / Logo -->
+    <div routerLink="/" class="flex items-center gap-2 cursor-pointer">
+      <div class="bg-blue-600 text-white font-black text-xl px-2.5 py-1 rounded-lg">
+        O
+      </div>
+      <span class="font-bold text-gray-900 text-lg tracking-tight">
+        Oaxaca<span class="text-blue-600">Empleos</span>
+      </span>
+    </div>
+
+    <!-- Navegación y Botones de Acción -->
+    <div class="flex items-center gap-2 sm:gap-3">
+      
+      <!-- Enlace al Directorio de Profesionales -->
+      <a 
+        routerLink="/directorio" 
+        class="text-gray-600 hover:text-gray-900 text-xs sm:text-sm font-medium px-2.5 py-2 rounded-lg hover:bg-gray-50 transition-colors">
+        Directorio
+      </a>
+
+      <!-- Botón secundario: Ofrecer Servicios -->
+      <a 
+        routerLink="/registro-profesional" 
+        class="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs sm:text-sm font-semibold px-3 py-2 rounded-lg transition-all shadow-sm flex items-center gap-1.5">
+        <span>👨‍🔧</span>
+        <span>Ofrecer Servicio</span>
+      </a>
+
+      <!-- Botón principal: Publicar Empleo -->
+      <button 
+        class="bg-blue-600 hover:bg-blue-700 active:scale-95 text-white text-xs sm:text-sm font-semibold px-3.5 py-2 rounded-lg transition-all shadow-sm">
+        Publicar Empleo
+      </button>
+
+    </div>
+
+  </div>
+</header>

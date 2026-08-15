@@ -1,7 +1,7 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { JobCard } from '../job-card/job-card';
 import { JobFilter } from '../job-filter/job-filter';
-import { JobService } from '../../services/job';
+import { JobService } from '../../services/job.service';
 
 @Component({
   selector: 'app-job-feed',

@@ -1,11 +1,9 @@
 <!-- Componente Navbar separado -->
 <app-navbar />
 
-<!-- Contenedor Principal de la App -->
+<!-- Contenedor Principal de la App controlado por el Router -->
 <main class="min-h-[calc(100vh-4rem)] bg-gray-50 py-8">
   <div class="max-w-5xl mx-auto px-4">
-    <app-job-feed />
+    <router-outlet />
   </div>
 </main>
-
-<router-outlet />

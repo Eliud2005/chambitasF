@@ -1,32 +1,50 @@
 <article class="flex h-full flex-col justify-between rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
   <div class="flex flex-col gap-3">
-    <!-- Header: Categoría y Verificación -->
-    <div class="flex items-center justify-between gap-2">
-      <span class="rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-sky-700">
-        {{ professional().category }}
+    <!-- Header: Oficios / Categorías y Estado de Disponibilidad -->
+    <div class="flex flex-wrap items-center justify-between gap-2">
+      <div class="flex flex-wrap gap-1.5">
+        @for (item of professional().oficios; track item.oficio.id) {
+          <span 
+            class="rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wider"
+            [class]="item.principal ? 'bg-sky-100 text-sky-700' : 'bg-gray-100 text-gray-600'">
+            {{ item.oficio.nombre }}
+          </span>
+        }
+      </div>
+
+      <span 
+        class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium border"
+        [class]="professional().disponible ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-gray-50 text-gray-600 border-gray-200'">
+        <span class="h-1.5 w-1.5 rounded-full" [class]="professional().disponible ? 'bg-emerald-500' : 'bg-gray-400'"></span>
+        {{ professional().disponible ? 'Disponible' : 'Ocupado' }}
       </span>
-      @if (professional().isVerified) {
-        <span class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700 border border-emerald-200" title="Perfil verificado">
-          ✓ Verificado
-        </span>
-      }
     </div>
 
     <!-- Info del profesional -->
     <div>
-      <h3 class="text-lg font-bold text-gray-900">{{ professional().name }}</h3>
+      <h3 class="text-lg font-bold text-gray-900">
+        {{ professional().nombre }} {{ professional().apellido }}
+      </h3>
       
       <div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500">
-        <span>📍 {{ professional().location }}</span>
-        <span>⭐ {{ professional().rating }}</span>
-        @if (professional().yearsOfExperience) {
-          <span>⏱️ {{ professional().yearsOfExperience }} años exp.</span>
+        <span>📍 {{ professional().zonaCobertura }}</span>
+        
+        @if (professional().promedioCalificacion) {
+          <span>⭐ {{ professional().promedioCalificacion?.toFixed(1) }} ({{ professional().totalResenas }})</span>
+        } @else {
+          <span class="text-gray-400">⭐ Nuevo</span>
+        }
+
+        @if (professional().experiencia) {
+          <span>⏱️ {{ professional().experiencia }}</span>
         }
       </div>
 
-      <p class="mt-3 text-sm leading-relaxed text-gray-600 line-clamp-3">
-        {{ professional().description }}
-      </p>
+      @if (professional().descripcion) {
+        <p class="mt-3 text-sm leading-relaxed text-gray-600 line-clamp-3">
+          {{ professional().descripcion }}
+        </p>
+      }
     </div>
   </div>
 

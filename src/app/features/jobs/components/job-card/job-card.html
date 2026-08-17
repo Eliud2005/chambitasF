@@ -1,31 +1,34 @@
 <div class="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-shadow duration-200 mb-4">
   <!-- Encabezado de la tarjeta -->
   <div class="flex items-center justify-between mb-3">
-    <span class="inline-block bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-1 rounded-full">
-      {{ job().category }}
+    <span class="inline-block bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-1 rounded-full capitalize">
+      {{ job().oficioNombre || job().oficioId }}
     </span>
     <span class="text-xs text-gray-500 font-medium">
-      📍 {{ job().location }}
+      📍 {{ job().ubicacion }}
     </span>
   </div>
 
   <!-- Contenido -->
   <h3 class="text-lg font-bold text-gray-900 mb-2 leading-snug">
-    {{ job().title }}
+    {{ job().titulo }}
   </h3>
 
   <p class="text-sm text-gray-600 line-clamp-3 mb-4">
-    {{ job().description }}
+    {{ job().descripcion }}
   </p>
 
   <!-- Footer y Botón de Acción -->
   <div class="flex items-center justify-between border-t border-gray-100 pt-3 mt-auto">
     <div>
-      @if (job().budget) {
+      @if (job().presupuesto) {
         <span class="text-xs text-gray-400 block">Presupuesto</span>
         <span class="text-base font-extrabold text-emerald-600">
-          ${{ job().budget }} MXN
+          ${{ job().presupuesto }} MXN
         </span>
+      } @else {
+        <span class="text-xs text-gray-400 block">Presupuesto</span>
+        <span class="text-sm font-semibold text-gray-600">A convenir</span>
       }
     </div>
 

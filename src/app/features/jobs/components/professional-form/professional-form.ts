@@ -1,7 +1,8 @@
 import { Component, inject, output } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ProfessionalService } from '../../services/professional.service';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { AuthService } from '../../services/auth.service'; // O tu servicio de autenticación
+import { RegisterDto } from '../../models/auth.model';
 
 @Component({
   selector: 'app-professional-form',
@@ -11,26 +12,12 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 })
 export class ProfessionalForm {
   private fb = inject(FormBuilder);
-  private professionalService = inject(ProfessionalService);
+  private authService = inject(AuthService);
+  private router = inject(Router);
 
-  // Evento opcional para notificar al padre cuando el registro fue exitoso (ej. para cerrar un modal)
   formSubmitted = output<void>();
 
-  // Categorías de oficios locales predefinidas
-  categories: string[] = [
-    'Plomería',
-    'Electricidad',
-    'Carpintería',
-    'Pintura',
-    'Mecanica',
-    'Albañilería',
-    'Herrería',
-    'Jardinería',
-    'Limpieza',
-    'Otro'
-  ];
-
-  // Municipios y zonas principales
+  // Municipios / Zonas de cobertura
   locations: string[] = [
     'Ocotlán de Morelos',
     'San Antonino Castillo Velasco',
@@ -40,13 +27,16 @@ export class ProfessionalForm {
     'Otra zona'
   ];
 
+  // Formulario alineado con RegisterDto (Rol TRABAJADOR)
   form: FormGroup = this.fb.group({
-    name: ['', [Validators.required, Validators.minLength(3)]],
-    category: ['', [Validators.required]],
-    location: ['', [Validators.required]],
-    phone: ['', [Validators.required, Validators.pattern('^[0-9]{10,12}$')]],
-    yearsOfExperience: [1, [Validators.required, Validators.min(0), Validators.max(60)]],
-    description: ['', [Validators.required, Validators.minLength(15)]],
+    nombre: ['', [Validators.required, Validators.minLength(2)]],
+    apellido: ['', [Validators.required, Validators.minLength(2)]],
+    email: ['', [Validators.required, Validators.email]],
+    password: ['', [Validators.required, Validators.minLength(6)]],
+    telefono: ['', [Validators.required, Validators.pattern('^[0-9]{10}$')]],
+    zonaCobertura: ['', [Validators.required]],
+    experiencia: ['', [Validators.required, Validators.minLength(5)]],
+    descripcion: ['', [Validators.required, Validators.minLength(15)]],
   });
 
   onSubmit() {
@@ -55,20 +45,30 @@ export class ProfessionalForm {
       return;
     }
 
-    const formValues = this.form.value;
+    const val = this.form.value;
 
-    // Guardar el nuevo perfil profesional en el servicio
-    this.professionalService.addProfessional({
-      name: formValues.name,
-      category: formValues.category,
-      location: formValues.location,
-      phone: formValues.phone.startsWith('521') ? formValues.phone : `521${formValues.phone}`,
-      yearsOfExperience: formValues.yearsOfExperience,
-      description: formValues.description,
-      isVerified: false,
+    // Construcción del DTO exacto para POST /auth/register
+    const registerData: RegisterDto = {
+      nombre: val.nombre,
+      apellido: val.apellido,
+      email: val.email,
+      password: val.password,
+      telefono: val.telefono,
+      rol: 'TRABAJADOR',
+      zonaCobertura: val.zonaCobertura,
+      experiencia: val.experiencia,
+      descripcion: val.descripcion,
+    };
+
+    // Llamada al endpoint de registro
+    this.authService.register(registerData).subscribe({
+      next: () => {
+        this.formSubmitted.emit();
+        this.router.navigate(['/profesional-feed']);
+      },
+      error: (err) => {
+        console.error('Error al registrar trabajador:', err);
+      }
     });
-
-    this.form.reset({ yearsOfExperience: 1 });
-    this.formSubmitted.emit();
   }
 }

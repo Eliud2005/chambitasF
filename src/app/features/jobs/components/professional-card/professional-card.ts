@@ -14,12 +14,25 @@ import { ProfessionalProfile } from '../../models/professional.model';
 export class ProfessionalCard {
   professional = input.required<ProfessionalProfile>();
 
+  // Obtiene el oficio principal o el primero de la lista
+  primaryOficio = computed(() => {
+    const p = this.professional();
+    const principal = p.oficios?.find((o) => o.principal)?.oficio.nombre;
+    return principal || p.oficios?.[0]?.oficio.nombre || 'Servicios Generales';
+  });
+
+  // Genera el enlace de WhatsApp formateando el teléfono de México (521)
   whatsappUrl = computed(() => {
     const p = this.professional();
-    const cleanPhone = p.phone.startsWith('521') ? p.phone : `521${p.phone.replace(/\D/g, '')}`;
+    const oficio = this.primaryOficio();
+    const cleanDigits = (p.telefono || '').replace(/\D/g, '');
+    
+    // Antepone lada nacional 521 si el número tiene 10 dígitos
+    const fullPhone = cleanDigits.length === 10 ? `521${cleanDigits}` : cleanDigits;
+    
     const text = encodeURIComponent(
-      `Hola ${p.name}, vi tu perfil en la plataforma y me gustaría solicitar información sobre tus servicios de ${p.category}.`
+      `Hola ${p.nombre}, vi tu perfil en la plataforma y me gustaría solicitar información sobre tus servicios de ${oficio}.`
     );
-    return `https://wa.me/${cleanPhone}?text=${text}`;
+    return `https://wa.me/${fullPhone}?text=${text}`;
   });
 }

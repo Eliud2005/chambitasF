@@ -1,20 +1,81 @@
 <section class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-  <header class="mb-6">
-    <h2 class="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">
-      Directorio de Trabajadores
-    </h2>
-    <p class="mt-1 text-sm text-gray-500 sm:text-base">
-      Conecta directamente por WhatsApp con trabajadores de oficio locales
-    </p>
+  <header class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div>
+      <h2 class="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">
+        Directorio de Trabajadores
+      </h2>
+      <p class="mt-1 text-sm text-gray-500 sm:text-base">
+        Conecta directamente por WhatsApp con trabajadores de oficio locales
+      </p>
+    </div>
+
+    <div>
+      <a 
+        routerLink="/registro-profesional"
+        class="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
+        + Registrarme como Trabajador
+      </a>
+    </div>
   </header>
+
+  <div class="mb-6 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3 items-center">
+      
+      <div>
+        <label class="block text-xs font-semibold uppercase tracking-wider text-gray-600 mb-1">
+          Zona o Municipio
+        </label>
+        <select 
+          [ngModel]="selectedZona()" 
+          (ngModelChange)="selectedZona.set($event); onFilterChange()"
+          class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+          <option value="">Todas las zonas</option>
+          @for (loc of locations; track loc) {
+            <option [value]="loc">{{ loc }}</option>
+          }
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold uppercase tracking-wider text-gray-600 mb-1">
+          Oficio
+        </label>
+        <select 
+          [ngModel]="selectedOficioId()" 
+          (ngModelChange)="selectedOficioId.set($event); onFilterChange()"
+          class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+          <option value="">Todos los oficios</option>
+          @for (oficio of oficios(); track oficio.id) {
+            <option [value]="oficio.id">{{ oficio.nombre }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="flex items-center sm:pt-5">
+        <label class="relative inline-flex items-center cursor-pointer">
+          <input 
+            type="checkbox" 
+            [checked]="onlyAvailable()" 
+            (change)="onlyAvailable.set(!onlyAvailable()); onFilterChange()" 
+            class="sr-only peer">
+          <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+          <span class="ms-3 text-sm font-medium text-gray-700">Solo disponibles</span>
+        </label>
+      </div>
+
+    </div>
+  </div>
 
   <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
     @for (prof of professionals(); track prof.id) {
       <app-professional-card [professional]="prof" />
     } @empty {
-      <p class="col-span-full py-12 text-center text-sm text-gray-500">
-        No se encontraron profesionales registrados.
-      </p>
+      <div class="col-span-full rounded-xl border border-dashed border-gray-300 bg-white py-12 text-center">
+        <p class="text-base font-medium text-gray-900">No se encontraron profesionales registrados</p>
+        <p class="mt-1 text-sm text-gray-500">
+          Prueba seleccionando otra zona o quitando los filtros de búsqueda.
+        </p>
+      </div>
     }
   </div>
 </section>

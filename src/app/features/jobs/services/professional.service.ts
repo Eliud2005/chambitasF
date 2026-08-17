@@ -1,123 +1,89 @@
-import { Injectable, signal } from '@angular/core';
-import { ProfessionalProfile } from '../models/professional.model';
+import { Injectable, inject, signal } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { Oficio, ProfessionalProfile, Review } from '../models/professional.model';
+
+export interface ProfessionalFilter {
+  oficioId?: string;
+  zona?: string;
+  disponible?: boolean;
+  q?: string;
+}
 
 @Injectable({
   providedIn: 'root',
 })
 export class ProfessionalService {
-  private professionalsSignal = signal<ProfessionalProfile[]>([
-    {
-      id: 'p1',
-      name: 'José Luis Mendoza',
-      category: 'Plomería',
-      location: 'Ocotlán de Morelos',
-      phone: '5219510000001',
-      description: 'Instalación y reparación de bombas de agua, tinacos, cisternas y fugas en general. Servicio de emergencia las 24 hrs.',
-      yearsOfExperience: 12,
-      rating: 4.9,
-      isVerified: true,
-    },
-    {
-      id: 'p2',
-      name: 'Carlos Ramos',
-      category: 'Electricidad',
-      location: 'Centro',
-      phone: '5219510000002',
-      description: 'Electricista certificado. Cortocircuitos, centros de carga, acometidas, balanceo de cargas y cableado residencial.',
-      yearsOfExperience: 8,
-      rating: 4.7,
-      isVerified: true,
-    },
-    {
-      id: 'p3',
-      name: 'Roberto Cruz',
-      category: 'Herrería',
-      location: 'Ocotlán de Morelos',
-      phone: '5219510000003',
-      description: 'Fabricación de portones, protecciones, techados de lámina y estructura metálica ligera. Presupuestos sin compromiso.',
-      yearsOfExperience: 10,
-      rating: 4.8,
-      isVerified: true,
-    },
-    {
-      id: 'p4',
-      name: 'Manuel Hernández',
-      category: 'Carpintería',
-      location: 'San Felipe del Agua',
-      phone: '5219510000004',
-      description: 'Fabricación y reparación de muebles a medida, clósets, cocinas integrales, puertas de madera y barnizado.',
-      yearsOfExperience: 15,
-      rating: 5.0,
-      isVerified: false,
-    },
-    {
-      id: 'p5',
-      name: 'Jorge Martínez',
-      category: 'Pintura',
-      location: 'Ocotlán de Morelos',
-      phone: '5219510000005',
-      description: 'Pintura de fachadas e interiores, impermeabilización de azoteas, resanado de grietas y aplicación de texturizados.',
-      yearsOfExperience: 6,
-      rating: 4.6,
-      isVerified: true,
-    },
-    {
-      id: 'p6',
-      name: 'Fernando Aguilar',
-      category: 'Cerrajería',
-      location: 'Ejutla de Crespo',
-      phone: '5219510000006',
-      description: 'Apertura de autos y casas, duplicados de llaves con chip, cambio de combinaciones y colocación de cerraduras de alta seguridad.',
-      yearsOfExperience: 9,
-      rating: 4.9,
-      isVerified: true,
-    },
-    {
-      id: 'p7',
-      name: 'Don Mateo Ramírez',
-      category: 'Albañilería',
-      location: 'Ocotlán de Morelos',
-      phone: '5219510000007',
-      description: 'Construcción en general, pegado de piso, azulejo, colados, bardas, aplanados y remodelaciones completas.',
-      yearsOfExperience: 20,
-      rating: 4.9,
-      isVerified: false,
-    },
-    {
-      id: 'p8',
-      name: 'Taller Mecánico El Rayo',
-      category: 'Mecánica',
-      location: 'Zaachila',
-      phone: '5219510000008',
-      description: 'Mecánica general, afinaciones, frenos, suspensión y mantenimiento preventivo para automóviles y motocicletas.',
-      yearsOfExperience: 11,
-      rating: 4.8,
-      isVerified: false,
-    },
-    {
-      id: 'p9',
-      name: 'Javier Gómez',
-      category: 'Refrigeración',
-      location: 'Centro',
-      phone: '5219510000009',
-      description: 'Mantenimiento y reparación de aire acondicionado, minisplits, refrigeradores comerciales y domésticos.',
-      yearsOfExperience: 7,
-      rating: 4.7,
-      isVerified: true,
-    },
-  ]);
+  private http = inject(HttpClient);
+  
+  // URL base apuntando a la API REST de NestJS
+  private readonly API_URL = 'http://localhost:3000/api';
 
+  // Signals para manejar el estado global de profesionales y catálogo de oficios
+  private professionalsSignal = signal<ProfessionalProfile[]>([]);
+  private oficiosSignal = signal<Oficio[]>([]);
+  private loadingSignal = signal<boolean>(false);
+
+  // Readonly Signals expuestas a los componentes
   professionals = this.professionalsSignal.asReadonly();
+  oficios = this.oficiosSignal.asReadonly();
+  isLoading = this.loadingSignal.asReadonly();
 
-  addProfessional(professional: Omit<ProfessionalProfile, 'id'>): void {
-    const newProf: ProfessionalProfile = {
-      ...professional,
-      id: `p_${Date.now()}`,
-    };
-    this.professionalsSignal.update((profs) => [newProf, ...profs]);
+  /**
+   * Carga el catálogo público de oficios desde NestJS (GET /api/oficios)
+   */
+  loadOficios(): void {
+    this.http.get<Oficio[]>(`${this.API_URL}/oficios`).subscribe({
+      next: (data) => this.oficiosSignal.set(data),
+      error: (err) => console.error('Error al cargar catálogo de oficios:', err),
+    });
   }
 
-  getProfessionalById(id: string): ProfessionalProfile | undefined {
-    return this.professionalsSignal().find((p) => p.id === id);
+  /**
+   * Obtener lista de trabajadores filtrada desde NestJS (GET /api/trabajadores)
+   * Acepta query params: oficioId, zona (cobertura), disponible, q
+   */
+  loadProfessionals(filters?: ProfessionalFilter): void {
+    this.loadingSignal.set(true);
+    let params = new HttpParams();
+
+    if (filters?.oficioId) {
+      params = params.set('oficioId', filters.oficioId);
+    }
+    if (filters?.zona) {
+      params = params.set('zona', filters.zona);
+    }
+    if (filters?.disponible !== undefined) {
+      params = params.set('disponible', filters.disponible.toString());
+    }
+    if (filters?.q) {
+      params = params.set('q', filters.q);
+    }
+
+    this.http.get<ProfessionalProfile[]>(`${this.API_URL}/trabajadores`, { params }).subscribe({
+      next: (data) => {
+        this.professionalsSignal.set(data);
+        this.loadingSignal.set(false);
+      },
+      error: (err) => {
+        console.error('Error al cargar la lista de trabajadores:', err);
+        this.loadingSignal.set(false);
+      },
+    });
+  }
+
+  /**
+   * Obtener el perfil público detallado de un trabajador por ID (GET /api/trabajadores/:id)
+   * Incluye la relación con Usuario, PerfilTrabajador, Oficios y promedio de calificación.
+   */
+  getProfessionalById(id: string): Observable<ProfessionalProfile> {
+    return this.http.get<ProfessionalProfile>(`${this.API_URL}/trabajadores/${id}`);
+  }
+
+  /**
+   * Obtener el listado de reseñas escritas para un trabajador (GET /api/trabajadores/:id/resenas)
+   */
+  getProfessionalReviews(trabajadorId: string): Observable<Review[]> {
+    return this.http.get<Review[]>(`${this.API_URL}/trabajadores/${trabajadorId}/resenas`);
   }
 }

@@ -1,54 +1,56 @@
-import { Component, signal, output } from '@angular/core';
+import { Component, inject, OnInit, output, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { Oficio } from '../../models/professional.model';
+import { ProfessionalService } from '../../services/professional.service';
 
 @Component({
   selector: 'app-job-filter',
-  imports: [],
+  standalone: true,
+  imports: [FormsModule],
   templateUrl: './job-filter.html',
 })
-export class JobFilter {
+export class JobFilter implements OnInit {
+  private professionalService = inject(ProfessionalService);
+
+  // Outputs tipo Signal (Angular 17.3+)
   searchQuery = output<string>();
   categoryChange = output<string>();
   locationChange = output<string>();
 
-  categories: string[] = [
-    'Todas',
-    'Plomería',
-    'Pintura',
-    'Electricidad',
-    'Carpintería',
-    'Limpieza',
-    'Jardinería',
-    'Construcción',
-    'Mecanica',
-  ];
+  // Catálogo dinámico de oficios desde NestJS
+  oficios = this.professionalService.oficios;
 
+  // Lista local de ubicaciones / zonas de cobertura
   locations: string[] = [
-    'Todas las zonas',
-    'Centro',
     'Ocotlán de Morelos',
-    'San Felipe del Agua',
+    'San Antonino Castillo Velasco',
+    'Ejutla de Crespo',
+    'Zaachila',
+    'Centro / Oaxaca',
     'Reforma',
     'Xochimilco',
-    'Santa Cruz Xoxocotlán',
-    'Santa Lucía del Camino',
-    'Zaachila',
-    'Etla',
+    'Santa Cruz Xoxocotlán'
   ];
 
-  selectedCategory = signal<string>('Todas');
-  selectedLocation = signal<string>('Todas las zonas');
+  selectedCategory = signal<string>(''); // Vacio = Todos los oficios
+  selectedLocation = signal<string>(''); // Vacio = Todas las zonas
 
-  onSearchChange(event: Event) {
+  ngOnInit(): void {
+    // Cargar catálogo de oficios si no está poblado aún
+    this.professionalService.loadOficios();
+  }
+
+  onSearchChange(event: Event): void {
     const value = (event.target as HTMLInputElement).value;
-    this.searchQuery.emit(value);
+    this.searchQuery.emit(value.trim());
   }
 
-  selectCategory(category: string) {
-    this.selectedCategory.set(category);
-    this.categoryChange.emit(category);
+  selectCategory(oficioId: string): void {
+    this.selectedCategory.set(oficioId);
+    this.categoryChange.emit(oficioId);
   }
 
-  onLocationChange(event: Event) {
+  onLocationChange(event: Event): void {
     const value = (event.target as HTMLSelectElement).value;
     this.selectedLocation.set(value);
     this.locationChange.emit(value);

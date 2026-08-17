@@ -1,14 +1,20 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ProfessionalCard } from '../professional-card/professional-card';
+import { ProfessionalService } from '../../services/professional.service';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 
 @Component({
   selector: 'app-professional-feed',
-  imports: [],
+  standalone: true,
+  imports: [ProfessionalCard, RouterLink, RouterLinkActive],
   templateUrl: './professional-feed.html',
-  styles: `
-    :host {
-      display: block;
-    }
-  `,
+  host: {
+    class: 'block'
+  },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ProfessionalFeed {}
+export class ProfessionalFeed {
+  private professionalService = inject(ProfessionalService);
+
+  professionals = this.professionalService.professionals;
+}

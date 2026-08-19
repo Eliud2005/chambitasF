@@ -1,0 +1,54 @@
+<div class="worker-detail-container">
+  <div class="worker-card">
+
+    <!-- Encabezado -->
+    <div class="worker-header">
+    
+      <div class="worker-title">
+        <h2>{{ worker.nombre }} {{ worker.apellido }}</h2>
+        <span class="status-badge" [class.available]="worker.disponible">
+          {{ worker.disponible ? ' Disponible para contratar' : ' No disponible por el momento' }}
+        </span>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- Oficios -->
+    <div class="info-section">
+      <h3>Oficios Principales</h3>
+      <div class="oficios-list">
+        @for (oficio of worker.oficios; track oficio) {
+          <span class="oficio-chip"> {{ oficio }}</span>
+        }
+      </div>
+    </div>
+
+    <!-- Cobertura y Descripción -->
+    <div class="info-section">
+      <h3> Zona de Cobertura</h3>
+      <p>{{ worker.zonaCobertura }}</p>
+    </div>
+
+    <div class="info-section">
+      <h3>Presentación</h3>
+      <p>{{ worker.descripcion }}</p>
+    </div>
+
+    <div class="info-section">
+      <h3>Experiencia</h3>
+      <p>{{ worker.experiencia }}</p>
+    </div>
+
+    <!-- Botones de Contacto Directo (WhatsApp / Llamar) -->
+    <div class="contact-actions">
+      <a [href]="getWhatsAppLink()" target="_blank" class="btn-whatsapp">
+         Contactar por WhatsApp
+      </a>
+      <a [href]="'tel:' + worker.telefono" class="btn-call">
+         Llamar Directamente
+      </a>
+    </div>
+
+  </div>
+</div>

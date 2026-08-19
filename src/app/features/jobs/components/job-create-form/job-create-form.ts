@@ -52,7 +52,7 @@ export class JobCreateForm {
     descripcion: ['', [Validators.required, Validators.minLength(15)]],
   });
 
-  onSubmit() {
+  onSubmit(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
@@ -60,11 +60,12 @@ export class JobCreateForm {
 
     const { titulo, oficioId, ubicacion, presupuesto, telefonoContacto, descripcion } = this.form.value;
 
+    // Asegurar formato internacional para WhatsApp (+521 para México si tiene 10 dígitos)
     const phoneFormatted = telefonoContacto?.startsWith('521')
       ? telefonoContacto
       : `521${telefonoContacto || ''}`;
 
-    // Buscar el nombre del oficio para mostrarlo en las tarjetas
+    // Buscar el nombre del oficio para mostrarlo en las tarjetas del feed
     const oficioSeleccionado = this.categories.find((cat) => cat.id === oficioId);
 
     const dto: CreateJobDto = {
@@ -75,7 +76,10 @@ export class JobCreateForm {
       descripcion: `${descripcion || ''}\n\nContacto: ${phoneFormatted}`,
     };
 
+    // Llama al servicio que ahora guarda en localStorage de forma reactiva
     this.jobService.addJob(dto, oficioSeleccionado?.nombre);
+
+    // Redirige al inicio / feed de trabajos
     this.router.navigate(['/']);
   }
 }

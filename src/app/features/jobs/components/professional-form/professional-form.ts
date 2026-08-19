@@ -1,7 +1,8 @@
 import { Component, inject, output } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
-import { AuthService } from '../../services/auth.service'; // O tu servicio de autenticación
+import { AuthService } from '../../services/auth.service';
+import { ProfessionalService } from '../../services/professional.service';
 import { RegisterDto } from '../../models/auth.model';
 
 @Component({
@@ -13,6 +14,7 @@ import { RegisterDto } from '../../models/auth.model';
 export class ProfessionalForm {
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
+  private professionalService = inject(ProfessionalService);
   private router = inject(Router);
 
   formSubmitted = output<void>();
@@ -24,7 +26,7 @@ export class ProfessionalForm {
     'Ejutla de Crespo',
     'Zaachila',
     'Centro / Oaxaca',
-    'Otra zona'
+    'Otra zona',
   ];
 
   // Formulario alineado con RegisterDto (Rol TRABAJADOR)
@@ -39,7 +41,7 @@ export class ProfessionalForm {
     descripcion: ['', [Validators.required, Validators.minLength(15)]],
   });
 
-  onSubmit() {
+  onSubmit(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
@@ -47,7 +49,7 @@ export class ProfessionalForm {
 
     const val = this.form.value;
 
-    // Construcción del DTO exacto para POST /auth/register
+    // 1. DTO exacto para NestJS (POST /auth/register)
     const registerData: RegisterDto = {
       nombre: val.nombre,
       apellido: val.apellido,
@@ -60,15 +62,34 @@ export class ProfessionalForm {
       descripcion: val.descripcion,
     };
 
-    // Llamada al endpoint de registro
+    // 2. Registro local previo/fallback para alimentar las Signals y localStorage
+    this.professionalService.registerLocalProfessional({
+      nombre: val.nombre,
+      apellido: val.apellido,
+      email: val.email,
+      telefono: val.telefono,
+      zonaCobertura: val.zonaCobertura,
+      experiencia: val.experiencia,
+      descripcion: val.descripcion,
+    });
+
+    // 3. Petición a la API de NestJS
     this.authService.register(registerData).subscribe({
       next: () => {
+        // Recargar desde el servidor si la API respondió correctamente
+        this.professionalService.loadProfessionals();
         this.formSubmitted.emit();
         this.router.navigate(['/profesional-feed']);
       },
       error: (err) => {
-        console.error('Error al registrar trabajador:', err);
-      }
+        console.warn(
+          'Servidor no disponible o falló la API. Los datos se conservarán localmente:',
+          err
+        );
+        // Aun si falla el backend en local, redirige y emite evento con la data guardada en localStorage
+        this.formSubmitted.emit();
+        this.router.navigate(['/profesional-feed']);
+      },
     });
   }
 }

@@ -27,6 +27,8 @@ export interface CreateJobDto {
   providedIn: 'root',
 })
 export class JobService {
+  private readonly STORAGE_KEY = 'trades_jobs_local_db';
+
   // Datos iniciales de prueba (Mock Data)
   private initialJobs: JobPost[] = [
     {
@@ -64,11 +66,43 @@ export class JobService {
     },
   ];
 
-  // Señal reactiva inicializada con las publicaciones de prueba
-  jobs = signal<JobPost[]>(this.initialJobs);
+  // Señal reactiva inicializada con lo almacenado en LocalStorage o con los Mocks por defecto
+  jobs = signal<JobPost[]>(this.loadFromStorage());
 
   /**
-   * Agrega un nuevo trabajo a la lista reactiva
+   * Carga los datos guardados en LocalStorage. 
+   * Si es la primera vez que se ejecuta, guarda y retorna los datos de prueba iniciales.
+   */
+  private loadFromStorage(): JobPost[] {
+    if (typeof window === 'undefined' || !window.localStorage) {
+      return this.initialJobs;
+    }
+
+    const savedData = localStorage.getItem(this.STORAGE_KEY);
+    if (!savedData) {
+      this.saveToStorage(this.initialJobs);
+      return this.initialJobs;
+    }
+
+    try {
+      return JSON.parse(savedData);
+    } catch (error) {
+      console.error('Error al parsear publicaciones guardadas:', error);
+      return this.initialJobs;
+    }
+  }
+
+  /**
+   * Serializa y persiste el estado actual de publicaciones en LocalStorage
+   */
+  private saveToStorage(jobsList: JobPost[]): void {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(jobsList));
+    }
+  }
+
+  /**
+   * Agrega un nuevo trabajo a la lista reactiva y lo guarda en LocalStorage
    * @param dto Datos del formulario de creación
    * @param oficioNombre Nombre descriptivo del oficio (opcional)
    */
@@ -85,7 +119,11 @@ export class JobService {
       createdAt: new Date().toISOString(),
     };
 
-    // Actualiza la señal colocando la nueva publicación al inicio del arreglo
-    this.jobs.update((currentJobs) => [newJob, ...currentJobs]);
+    // Actualiza la Signal y sincroniza inmediatamente con LocalStorage
+    this.jobs.update((currentJobs) => {
+      const updatedList = [newJob, ...currentJobs];
+      this.saveToStorage(updatedList);
+      return updatedList;
+    });
   }
 }

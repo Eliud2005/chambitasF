@@ -16,7 +16,7 @@ interface WorkerPublicProfile {
   selector: 'app-worker-detail',
   imports: [RouterLink],
   templateUrl: './worker-detail.html',
-  styleUrl: './worker-detail.css',
+ 
 })
 export class WorkerDetailComponent implements OnInit {
   private route = inject(ActivatedRoute);

@@ -1,39 +1,35 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
-import { Role } from '../../core/models/auth.interface';
 
 interface Oficio {
   id: string;
   nombre: string;
-  categoria: string;
 }
 
 @Component({
   selector: 'app-profile',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule],
   templateUrl: './profile.html',
-  styleUrl: './profile.css'
+ 
 })
 export class ProfileComponent implements OnInit {
   private fb = inject(FormBuilder);
 
   profileForm!: FormGroup;
-  isEditing = false;
-  userRole: Role = 'TRABAJADOR';
+  isTrabajador = true;
 
-  // Catálogo simulado de oficios (proviene de GET /oficios)
-  catalogoOficios: Oficio[] = [
-    { id: '1', nombre: 'Plomería', categoria: 'Mantenimiento' },
-    { id: '2', nombre: 'Electricidad', categoria: 'Mantenimiento' },
-    { id: '3', nombre: 'Albañilería', categoria: 'Construcción' },
-    { id: '4', nombre: 'Pintura', categoria: 'Acabados' },
-    { id: '5', nombre: 'Carpintería', categoria: 'Construcción' },
-    { id: '6', nombre: 'Jardinería', categoria: 'Exteriores' }
+
+  availableOficios: Oficio[] = [
+    { id: '1', nombre: 'Plomería' },
+    { id: '2', nombre: 'Electricidad' },
+    { id: '3', nombre: 'Carpintería' },
+    { id: '4', nombre: 'Pintura' },
+    { id: '5', nombre: 'Jardinería' },
+    { id: '6', nombre: 'Albañilería' }
   ];
 
-  // IDs de oficios seleccionados (Máximo 3 según RN-03)[cite: 1]
-  selectedOficiosIds: string[] = ['1', '2'];
+
+  selectedOficios: string[] = ['1', '2'];
 
   ngOnInit(): void {
     this.initForm();
@@ -41,55 +37,47 @@ export class ProfileComponent implements OnInit {
 
   private initForm(): void {
     this.profileForm = this.fb.group({
-      nombre: [{ value: 'Dhayan', disabled: true }, [Validators.required]],
-      apellido: [{ value: 'Martínez', disabled: true }, [Validators.required]],
-      email: [{ value: 'dhayan@ejemplo.com', disabled: true }, [Validators.required, Validators.email]],
-      telefono: [{ value: '4441234567', disabled: true }, [Validators.required, Validators.pattern('^[0-9]{10}$')]],
-      zonaCobertura: [{ value: 'San Luis Potosí - Zona Centro', disabled: true }],
-      descripcion: [{ value: 'Especialista en mantenimiento e instalaciones eléctricas residenciales.', disabled: true }],
-      experiencia: [{ value: '5 años de experiencia en trabajos independientes.', disabled: true }],
-      disponible: [{ value: true, disabled: true }]
+      nombre: ['Dhayan', [Validators.required]],
+      apellido: ['carlos', [Validators.required]],
+      email: ['dhayan@carlos.com', [Validators.required, Validators.email]],
+      telefono: ['4441234567', [Validators.required]],
+      zonaCobertura: ['oaxaca - Centro'],
+      descripcion: ['Especialista en mantenimiento e instalaciones eléctricas.'],
+      experiencia: ['Más de 5 años de experiencia en el sector.'],
+      disponible: [true]
     });
   }
 
-  // Manejo de Checkboxes de Oficios (Regla RN-03: Max 3)[cite: 1]
-  toggleOficio(oficioId: string): void {
-    if (!this.isEditing) return;
 
-    const index = this.selectedOficiosIds.indexOf(oficioId);
+  toggleOficio(id: string): void {
+    const index = this.selectedOficios.indexOf(id);
     if (index > -1) {
-      this.selectedOficiosIds.splice(index, 1);
+      this.selectedOficios.splice(index, 1);
     } else {
-      if (this.selectedOficiosIds.length < 3) {
-        this.selectedOficiosIds.push(oficioId);
+      if (this.selectedOficios.length < 3) {
+        this.selectedOficios.push(id);
       } else {
         alert('Solo puedes seleccionar un máximo de 3 oficios principales.');
       }
     }
   }
 
-  isOficioSelected(oficioId: string): boolean {
-    return this.selectedOficiosIds.includes(oficioId);
+
+  isSelected(id: string): boolean {
+    return this.selectedOficios.includes(id);
   }
 
-  toggleEdit(): void {
-    this.isEditing = !this.isEditing;
-    if (this.isEditing) {
-      this.profileForm.enable();
-      this.profileForm.get('email')?.disable();
-    } else {
-      this.profileForm.disable();
-    }
-  }
 
-  onSubmit(): void {
+  saveProfile(): void {
     if (this.profileForm.valid) {
-      const updatedData = {
-        ...this.profileForm.getRawValue(),
-        oficiosPrincipales: this.selectedOficiosIds // Para PUT /trabajadores/me/oficios[cite: 1]
-      };
-      console.log('Datos listos para sincronizar con el Backend:', updatedData);
-      this.toggleEdit();
+      console.log('Perfil guardado:', this.profileForm.value);
+      alert('Perfil actualizado con éxito');
     }
+  }
+
+
+  saveOficios(): void {
+    console.log('Oficios guardados (IDs):', this.selectedOficios);
+    alert('Oficios actualizados con éxito');
   }
 }

@@ -13,11 +13,15 @@ export const routes: Routes = [
   {
     path: 'profile',
     loadComponent: () => import('./pages/profile/profile').then(m => m.ProfileComponent),
-    canActivate: [authGuard]
+  
   },
   {
     path: 'trabajadores/:id',
     loadComponent: () => import('./pages/worker-detail/worker-detail').then(m => m.WorkerDetailComponent)
+  },
+  {
+    path: 'trabajadores',
+    loadComponent: () => import('./pages/worker-list/worker-list').then(m => m.WorkerListComponent)
   },
   {
     path: '',

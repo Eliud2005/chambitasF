@@ -3,12 +3,22 @@ import { JobFeed } from './features/jobs/components/job-feed/job-feed';
 import { ProfessionalFeed } from './features/jobs/components/professional-feed/professional-feed';
 import { ProfessionalForm } from './features/jobs/components/professional-form/professional-form';      
 import { JobCreateForm } from './features/jobs/components/job-create-form/job-create-form';
-import { ProfessionalCard } from './features/jobs/components/professional-card/professional-card';
 
 export const routes: Routes = [
-  // Ruta principal: Tablón de Empleos / Solicitudes
+  // Rutas de autenticación creadas por tu compañera
+  { path: '', redirectTo: 'login', pathMatch: 'full' },
   {
-    path: '',
+    path: 'login',
+    loadComponent: () => import('./pages/auth/login/login').then(m => m.LoginComponent)
+  },
+  {
+    path: 'register',
+    loadComponent: () => import('./pages/auth/register/register').then(m => m.RegisterComponent)
+  },
+
+  // Tus rutas de empleos y profesionales
+  {
+    path: 'jobs',
     component: JobFeed,
   },
   {
@@ -23,8 +33,7 @@ export const routes: Routes = [
     path: 'profesional-feed',
     component: ProfessionalFeed,
   },
-  {
-    path: '**',
-    redirectTo: '',
-  },
+
+  // Ruta comodín por si escriben cualquier otra cosa
+  { path: '**', redirectTo: 'login' },
 ];

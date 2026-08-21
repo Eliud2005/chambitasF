@@ -20,9 +20,9 @@ export class ProfileComponent implements OnInit {
   profileForm!: FormGroup;
   isTrabajador = false;
 
-
   showToast = false;
   toastMessage = '';
+  avatarPreview: string | null = null;
 
   availableOficios: Oficio[] = [
     { id: '1', nombre: 'Plomería' },
@@ -60,6 +60,7 @@ export class ProfileComponent implements OnInit {
       const user = JSON.parse(savedData);
 
       this.isTrabajador = user.rol === 'TRABAJADOR';
+      this.avatarPreview = user.avatar || null;
 
       this.profileForm.patchValue({
         nombre: user.nombre || '',
@@ -80,6 +81,25 @@ export class ProfileComponent implements OnInit {
   }
 
 
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files[0]) {
+      const file = input.files[0];
+      const reader = new FileReader();
+
+      reader.onload = () => {
+        this.avatarPreview = reader.result as string;
+      };
+
+      reader.readAsDataURL(file);
+    }
+  }
+
+  // Quitar la foto seleccionada
+  removeAvatar(): void {
+    this.avatarPreview = null;
+  }
+
   get passwordStrength(): { text: string; color: string; width: string } {
     const pwd = this.profileForm.get('password')?.value || '';
     if (pwd.length === 0) return { text: '', color: '', width: '0%' };
@@ -87,7 +107,6 @@ export class ProfileComponent implements OnInit {
     if (pwd.length < 10) return { text: 'Media', color: 'bg-yellow-500', width: '66%' };
     return { text: 'Fuerte', color: 'bg-emerald-500', width: '100%' };
   }
-
 
   private triggerToast(msg: string): void {
     this.toastMessage = msg;
@@ -119,9 +138,9 @@ export class ProfileComponent implements OnInit {
       const updatedUser = {
         ...currentStorage,
         ...this.profileForm.value,
+        avatar: this.avatarPreview, 
         oficios: this.isTrabajador ? this.selectedOficios : undefined
       };
-
 
       localStorage.setItem('user', JSON.stringify(updatedUser));
 
@@ -140,10 +159,10 @@ export class ProfileComponent implements OnInit {
 
         localStorage.setItem('workers_list', JSON.stringify(workersList));
 
-        this.triggerToast('Perfil de Trabajador actualizado con éxito.');
+        this.triggerToast('Perfil e imagen actualizados con éxito.');
         setTimeout(() => this.router.navigate(['/trabajadores']), 1200);
       } else {
-        this.triggerToast('Perfil de Cliente actualizado con éxito.');
+        this.triggerToast('Perfil e imagen actualizados con éxito.');
         setTimeout(() => this.router.navigate(['/trabajos']), 1200);
       }
     }

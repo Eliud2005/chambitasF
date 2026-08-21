@@ -5,8 +5,10 @@ import { ProfessionalForm } from './features/jobs/components/professional-form/p
 import { JobCreateForm } from './features/jobs/components/job-create-form/job-create-form';
 
 export const routes: Routes = [
-  // Rutas de autenticación creadas por tu compañera
-  { path: '', redirectTo: 'login', pathMatch: 'full' },
+  // 1. Redirigir la raíz al feed de empleos (en lugar del login)
+  { path: '', redirectTo: 'jobs', pathMatch: 'full' },
+
+  // Rutas de autenticación
   {
     path: 'login',
     loadComponent: () => import('./pages/auth/login/login').then(m => m.LoginComponent)
@@ -29,11 +31,12 @@ export const routes: Routes = [
     path: 'registro-empleo',
     component: JobCreateForm,
   },
+  // 2. Renombrar 'profesional-feed' a 'directorio' para que coincida con el Header
   {
-    path: 'profesional-feed',
+    path: 'directorio',
     component: ProfessionalFeed,
   },
 
-  // Ruta comodín por si escriben cualquier otra cosa
-  { path: '**', redirectTo: 'login' },
+  // Ruta comodín para URLs no encontradas
+  { path: '**', redirectTo: 'jobs' },
 ];

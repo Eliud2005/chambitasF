@@ -1,14 +1,32 @@
-import { Component, signal } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
-import { Navbar } from './shared/components/navbar/navbar';
+import { Component, inject } from '@angular/core';
+import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
+import { Navbar as AppNavbar } from './components/navbar/navbar'; // Tu navbar de Tailwind
+// Importa el navbar de tu compañera si lo necesitas, o déjalo vacío para el login
+import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, Navbar],
+  imports: [RouterOutlet, AppNavbar],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
 export class App {
-  protected readonly title = signal('chambitasF');
+  private router = inject(Router);
+  currentUrl: string = '';
+
+  constructor() {
+    // Escucha cada cambio de ruta para actualizar la variable
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd)
+    ).subscribe((event: any) => {
+      this.currentUrl = event.urlAfterRedirects;
+    });
+  }
+
+  // Verifica si estamos en la zona de autenticación
+ isAuthPage(): boolean {
+    // Solo se oculta tu Navbar si estás exactamente en el login o en el registro
+    return this.currentUrl === '/login' || this.currentUrl === '/register';
+  }
 }

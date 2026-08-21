@@ -1,6 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-register',
@@ -9,19 +9,18 @@ import { RouterLink } from '@angular/router';
   styleUrl: './register.css',
 })
 export class RegisterComponent {
-registerForm: FormGroup;
-constructor(private fb: FormBuilder) {
-    this.registerForm = this.fb.group({
-      fullName: ['', Validators.required],
-      email: ['', [Validators.required, Validators.email]],
-      phone: ['', Validators.required],
-      password: ['', [Validators.required, Validators.minLength(6)]],
-      role: ['CLIENT', Validators.required],
-      trade: [''],
-      location: ['']
-    });
-  }
+  private fb = inject(FormBuilder);
+  private router = inject(Router);
 
+  registerForm: FormGroup = this.fb.group({
+    fullName: ['', Validators.required],
+    email: ['', [Validators.required, Validators.email]],
+    phone: ['', Validators.required],
+    password: ['', [Validators.required, Validators.minLength(6)]],
+    role: ['CLIENT', Validators.required],
+    trade: [''],
+    location: ['']
+  });
 
   isWorker(): boolean {
     return this.registerForm.get('role')?.value === 'WORKER';
@@ -30,7 +29,10 @@ constructor(private fb: FormBuilder) {
   onSubmit() {
     if (this.registerForm.valid) {
       console.log('Registro enviado:', this.registerForm.value);
-      // Próximamente se enviarán estos datos al backend
+      
+      // Aquí puedes simular o guardar de forma local si lo necesitan por ahora, 
+      // y mandarlo directo al login para que pruebe sus credenciales:
+      this.router.navigate(['/login']);
     }
   }
 }

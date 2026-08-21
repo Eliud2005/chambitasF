@@ -1,7 +1,10 @@
-<!-- Componente Navbar -->
-<app-navbar />
+<!-- Si estamos en login o register, NO mostramos tu Navbar de Tailwind -->
+<!-- Si estamos en cualquier otra ruta, SÍ lo mostramos -->
+@if (!isAuthPage()) {
+  <app-navbar /> 
+}
 
-<!-- Contenedor Principal de la App controlado por el Router -->
+<!-- Aquí se carga todo lo demás -->
 <main class="min-h-[calc(100vh-4rem)] bg-gray-50 py-8">
   <div class="max-w-5xl mx-auto px-4">
     <router-outlet />

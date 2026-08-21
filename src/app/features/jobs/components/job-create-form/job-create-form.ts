@@ -82,6 +82,6 @@ export class JobCreateForm {
     this.jobService.addJob(dto, oficioSeleccionado?.nombre);
 
     // Redirige al inicio / feed de trabajos
-    this.router.navigate(['/']);
+    this.router.navigate(['/jobs']);
   }
 }

@@ -20,6 +20,10 @@ export class ProfileComponent implements OnInit {
   profileForm!: FormGroup;
   isTrabajador = false;
 
+
+  showToast = false;
+  toastMessage = '';
+
   availableOficios: Oficio[] = [
     { id: '1', nombre: 'Plomería' },
     { id: '2', nombre: 'Electricidad' },
@@ -42,7 +46,7 @@ export class ProfileComponent implements OnInit {
       apellido: ['', [Validators.required]],
       email: ['', [Validators.required, Validators.email]],
       telefono: ['', [Validators.required]],
-      password: ['', [Validators.required, Validators.minLength(6)]], // Campo Contraseña agregado
+      password: ['', [Validators.required, Validators.minLength(6)]],
       zonaCobertura: [''],
       descripcion: [''],
       experiencia: [''],
@@ -62,7 +66,7 @@ export class ProfileComponent implements OnInit {
         apellido: user.apellido || '',
         email: user.email || '',
         telefono: user.telefono || '',
-        password: user.password || '', // Cargar contraseña guardada
+        password: user.password || '',
         zonaCobertura: user.zonaCobertura || '',
         descripcion: user.descripcion || '',
         experiencia: user.experiencia || '',
@@ -75,6 +79,22 @@ export class ProfileComponent implements OnInit {
     }
   }
 
+
+  get passwordStrength(): { text: string; color: string; width: string } {
+    const pwd = this.profileForm.get('password')?.value || '';
+    if (pwd.length === 0) return { text: '', color: '', width: '0%' };
+    if (pwd.length < 6) return { text: 'Débil', color: 'bg-red-500', width: '33%' };
+    if (pwd.length < 10) return { text: 'Media', color: 'bg-yellow-500', width: '66%' };
+    return { text: 'Fuerte', color: 'bg-emerald-500', width: '100%' };
+  }
+
+
+  private triggerToast(msg: string): void {
+    this.toastMessage = msg;
+    this.showToast = true;
+    setTimeout(() => this.showToast = false, 3000);
+  }
+
   toggleOficio(id: string): void {
     const index = this.selectedOficios.indexOf(id);
     if (index > -1) {
@@ -83,7 +103,7 @@ export class ProfileComponent implements OnInit {
       if (this.selectedOficios.length < 3) {
         this.selectedOficios.push(id);
       } else {
-        alert('Solo puedes seleccionar un máximo de 3 oficios principales.');
+        this.triggerToast('Solo puedes seleccionar un máximo de 3 oficios principales.');
       }
     }
   }
@@ -102,10 +122,9 @@ export class ProfileComponent implements OnInit {
         oficios: this.isTrabajador ? this.selectedOficios : undefined
       };
 
-      // 1. Guardar la información en la sesión del usuario actual
+
       localStorage.setItem('user', JSON.stringify(updatedUser));
 
-      // 2. Redirección y lógica según el Rol
       if (this.isTrabajador) {
         const workersList: any[] = JSON.parse(localStorage.getItem('workers_list') || '[]');
 
@@ -121,11 +140,11 @@ export class ProfileComponent implements OnInit {
 
         localStorage.setItem('workers_list', JSON.stringify(workersList));
 
-        alert('Perfil de Trabajador actualizado con éxito.');
-        this.router.navigate(['/trabajadores']);
+        this.triggerToast('Perfil de Trabajador actualizado con éxito.');
+        setTimeout(() => this.router.navigate(['/trabajadores']), 1200);
       } else {
-        alert('Perfil de Cliente actualizado con éxito.');
-        this.router.navigate(['/trabajos']);
+        this.triggerToast('Perfil de Cliente actualizado con éxito.');
+        setTimeout(() => this.router.navigate(['/trabajos']), 1200);
       }
     }
   }

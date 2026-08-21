@@ -103,8 +103,6 @@ export class JobService {
 
   /**
    * Agrega un nuevo trabajo a la lista reactiva y lo guarda en LocalStorage
-   * @param dto Datos del formulario de creación
-   * @param oficioNombre Nombre descriptivo del oficio (opcional)
    */
   addJob(dto: CreateJobDto, oficioNombre?: string): void {
     const newJob: JobPost = {
@@ -119,9 +117,32 @@ export class JobService {
       createdAt: new Date().toISOString(),
     };
 
-    // Actualiza la Signal y sincroniza inmediatamente con LocalStorage
     this.jobs.update((currentJobs) => {
       const updatedList = [newJob, ...currentJobs];
+      this.saveToStorage(updatedList);
+      return updatedList;
+    });
+  }
+
+  /**
+   * Elimina un trabajo por su ID y actualiza el LocalStorage
+   */
+  deleteJob(id: string): void {
+    this.jobs.update((currentJobs) => {
+      const updatedList = currentJobs.filter((job) => job.id !== id);
+      this.saveToStorage(updatedList);
+      return updatedList;
+    });
+  }
+
+  /**
+   * Actualiza el estado de un trabajo (ABIERTA | EN_PROGRESO | COMPLETADA)
+   */
+  updateJobStatus(id: string, nuevoEstado: PublicacionEstado): void {
+    this.jobs.update((currentJobs) => {
+      const updatedList = currentJobs.map((job) =>
+        job.id === id ? { ...job, estado: nuevoEstado } : job
+      );
       this.saveToStorage(updatedList);
       return updatedList;
     });

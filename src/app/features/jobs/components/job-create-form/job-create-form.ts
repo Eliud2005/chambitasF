@@ -48,7 +48,8 @@ export class JobCreateForm {
     oficioId: ['', [Validators.required]],
     ubicacion: ['', [Validators.required]],
     presupuesto: [null, [Validators.min(0)]],
-    telefonoContacto: ['', [Validators.required, Validators.pattern('^[0-9]{10,12}$')]],
+    // Validamos estrictamente 10 dígitos para el número nacional
+    telefonoContacto: ['', [Validators.required, Validators.pattern('^[0-9]{10}$')]],
     descripcion: ['', [Validators.required, Validators.minLength(15)]],
   });
 
@@ -60,10 +61,11 @@ export class JobCreateForm {
 
     const { titulo, oficioId, ubicacion, presupuesto, telefonoContacto, descripcion } = this.form.value;
 
-    // Asegurar formato internacional para WhatsApp (+521 para México si tiene 10 dígitos)
-    const phoneFormatted = telefonoContacto?.startsWith('521')
-      ? telefonoContacto
-      : `521${telefonoContacto || ''}`;
+    // Aseguramos formato internacional para WhatsApp agregando el prefijo 521 si no lo tiene
+    const cleanPhone = telefonoContacto?.trim() || '';
+    const phoneFormatted = cleanPhone.startsWith('521')
+      ? cleanPhone
+      : `521${cleanPhone}`;
 
     // Buscar el nombre del oficio para mostrarlo en las tarjetas del feed
     const oficioSeleccionado = this.categories.find((cat) => cat.id === oficioId);
@@ -76,7 +78,7 @@ export class JobCreateForm {
       descripcion: `${descripcion || ''}\n\nContacto: ${phoneFormatted}`,
     };
 
-    // Llama al servicio que ahora guarda en localStorage de forma reactiva
+    // Llama al servicio que guarda en localStorage de forma reactiva
     this.jobService.addJob(dto, oficioSeleccionado?.nombre);
 
     // Redirige al inicio / feed de trabajos

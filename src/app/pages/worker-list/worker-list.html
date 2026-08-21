@@ -1,0 +1,58 @@
+<div class="min-h-screen bg-slate-50 py-8 px-4">
+  <div class="max-w-6xl mx-auto space-y-6">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div>
+        <h2 class="text-2xl font-bold text-slate-800">Directorio de Trabajadores</h2>
+        <p class="text-xs text-slate-500">Encuentra a los mejores profesionales independientes</p>
+      </div>
+    </div>
+
+    <!-- Grid de Trabajadores Dinámico -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+      @for (worker of workers; track worker.id) {
+        <div class="bg-white rounded-xl shadow border border-slate-100 p-5 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center gap-3 mb-3">
+              <div class="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center text-2xl shrink-0">🛠️</div>
+              <div>
+                <h3 class="font-bold text-slate-800">{{ worker.nombre }} {{ worker.apellido }}</h3>
+
+                @if (worker.disponible) {
+                  <span class="text-xs text-emerald-600 font-semibold block">● Disponible</span>
+                } @else {
+                  <span class="text-xs text-rose-500 font-semibold block">● Ocupado</span>
+                }
+              </div>
+            </div>
+
+            <p class="text-xs text-slate-500 mb-2"> {{ worker.zonaCobertura || 'San Luis Potosí - Centro' }}</p>
+
+            <!-- Etiquetas de Oficios -->
+            <div class="flex flex-wrap gap-1 mb-4">
+              @for (oficio of worker.oficios; track $index) {
+                <span class="bg-blue-50 text-blue-700 text-xs px-2.5 py-0.5 rounded-full font-medium">
+                  {{ oficio }}
+                </span>
+              } @empty {
+                <span class="bg-slate-100 text-slate-600 text-xs px-2.5 py-0.5 rounded-full font-medium">
+                  General
+                </span>
+              }
+            </div>
+          </div>
+
+          <a [routerLink]="['/trabajadores', worker.id]" class="w-full text-center py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold rounded-lg transition-colors block">
+            Ver Perfil
+          </a>
+        </div>
+      } @empty {
+        <div class="col-span-full text-center py-12 bg-white rounded-xl border border-slate-100">
+          <p class="text-sm font-semibold text-slate-600">No hay trabajadores registrados en este momento.</p>
+          <p class="text-xs text-slate-400 mt-1">Regístrate para aparecer en el directorio.</p>
+        </div>
+      }
+
+    </div>
+  </div>
+</div>

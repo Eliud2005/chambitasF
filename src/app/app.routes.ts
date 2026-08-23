@@ -3,12 +3,13 @@ import { JobFeed } from './features/jobs/components/job-feed/job-feed';
 import { ProfessionalFeed } from './features/jobs/components/professional-feed/professional-feed';
 import { ProfessionalForm } from './features/jobs/components/professional-form/professional-form';      
 import { JobCreateForm } from './features/jobs/components/job-create-form/job-create-form';
+import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
-  // 1. Redirigir la raíz al feed de empleos (en lugar del login)
-  { path: '', redirectTo: 'jobs', pathMatch: 'full' },
+  // Ruta raíz (puedes dejarla en login o jobs según prefieran)
+  { path: '', redirectTo: 'login', pathMatch: 'full' },
 
-  // Rutas de autenticación
+  // Rutas de autenticación (de tu compañera)
   {
     path: 'login',
     loadComponent: () => import('./pages/auth/login/login').then(m => m.LoginComponent)
@@ -18,7 +19,21 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/auth/register/register').then(m => m.RegisterComponent)
   },
 
-  // Tus rutas de empleos y profesionales
+  // Perfil y trabajadores (de tu compañera)
+  {
+    path: 'profile',
+    loadComponent: () => import('./pages/profile/profile').then(m => m.ProfileComponent),
+  },
+  {
+    path: 'trabajadores/:id',
+    loadComponent: () => import('./pages/worker-detail/worker-detail').then(m => m.WorkerDetailComponent)
+  },
+  {
+    path: 'trabajadores',
+    loadComponent: () => import('./pages/worker-list/worker-list').then(m => m.WorkerListComponent)
+  },
+
+  // Tus rutas de empleos y profesionales (DiamondCode)
   {
     path: 'jobs',
     component: JobFeed,
@@ -31,12 +46,11 @@ export const routes: Routes = [
     path: 'registro-empleo',
     component: JobCreateForm,
   },
-  // 2. Renombrar 'profesional-feed' a 'directorio' para que coincida con el Header
   {
     path: 'directorio',
     component: ProfessionalFeed,
   },
 
   // Ruta comodín para URLs no encontradas
-  { path: '**', redirectTo: 'jobs' },
+  { path: '**', redirectTo: 'login' },
 ];

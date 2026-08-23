@@ -1,0 +1,194 @@
+<div class="min-h-screen bg-slate-50/60 py-10 px-4">
+  <div class="max-w-3xl mx-auto space-y-8">
+
+    <!-- Tarjeta Principal: Configuración de Cuenta -->
+    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 sm:p-8 space-y-6 relative overflow-hidden">
+      <div class="absolute top-0 left-0 right-0 h-1 bg-blue-600"></div>
+
+      <!-- Header del Perfil -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-100">
+        <div>
+          <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">Mi Perfil</h2>
+          <p class="text-xs text-slate-500">Gestiona tus datos personales y credenciales de acceso</p>
+        </div>
+
+        <div>
+          <span [class]="isTrabajador ? 'bg-indigo-50 text-indigo-700 border-indigo-200/80' : 'bg-emerald-50 text-emerald-700 border-emerald-200/80'"
+                class="px-3 py-1 rounded-full text-xs font-bold border inline-flex items-center gap-1.5 shadow-xs">
+            <span class="w-1.5 h-1.5 rounded-full" [class]="isTrabajador ? 'bg-indigo-600' : 'bg-emerald-600'"></span>
+            {{ isTrabajador ? 'Cuenta de Trabajador' : 'Cuenta de Cliente' }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Avatar Picker -->
+      <div class="flex items-center gap-5 p-4 bg-slate-50/80 rounded-2xl border border-slate-200/60">
+        <div class="relative w-16 h-16 rounded-2xl bg-white border border-slate-200 shadow-sm overflow-hidden flex items-center justify-center shrink-0">
+          @if (avatarPreview) {
+            <img [src]="avatarPreview" alt="Avatar" class="w-full h-full object-cover">
+          } @else {
+            <svg class="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+            </svg>
+          }
+        </div>
+
+        <div class="space-y-1.5">
+          <label class="block text-xs font-bold text-slate-800">Fotografía de Perfil</label>
+          <div class="flex items-center gap-3">
+            <label class="cursor-pointer px-3.5 py-1.5 bg-white border border-slate-200 hover:border-slate-300 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-50 transition-all shadow-xs inline-flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+              </svg>
+              <span>Subir foto</span>
+              <input type="file" accept="image/*" class="hidden" (change)="onFileSelected($event)">
+            </label>
+
+            @if (avatarPreview) {
+              <button type="button" (click)="removeAvatar()" class="text-xs text-red-600 hover:text-red-700 hover:underline font-bold transition-colors">
+                Eliminar
+              </button>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Formulario de Perfil -->
+      <form [formGroup]="profileForm" (ngSubmit)="saveProfile()" class="space-y-5">
+        
+        <!-- Nombre y Apellido -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="space-y-1.5">
+            <label class="block text-xs font-bold text-slate-800">Nombre</label>
+            <input type="text" formControlName="nombre" class="w-full px-3.5 py-2.5 text-xs text-slate-900 bg-white border border-slate-200 rounded-xl focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10 outline-none transition-all">
+          </div>
+          <div class="space-y-1.5">
+            <label class="block text-xs font-bold text-slate-800">Apellido</label>
+            <input type="text" formControlName="apellido" class="w-full px-3.5 py-2.5 text-xs text-slate-900 bg-white border border-slate-200 rounded-xl focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10 outline-none transition-all">
+          </div>
+        </div>
+
+        <!-- Correo y Teléfono -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="space-y-1.5">
+            <label class="block text-xs font-bold text-slate-800">Correo Electrónico</label>
+            <input type="email" formControlName="email" class="w-full px-3.5 py-2.5 text-xs text-slate-900 bg-white border border-slate-200 rounded-xl focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10 outline-none transition-all">
+          </div>
+          <div class="space-y-1.5">
+            <label class="block text-xs font-bold text-slate-800">Teléfono (WhatsApp)</label>
+            <input type="tel" formControlName="telefono" class="w-full px-3.5 py-2.5 text-xs text-slate-900 bg-white border border-slate-200 rounded-xl focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10 outline-none transition-all">
+          </div>
+        </div>
+
+        <!-- Cambio de Contraseña y Medidor de Fuerza -->
+        <div class="space-y-1.5">
+          <label class="block text-xs font-bold text-slate-800">Cambiar Contraseña</label>
+          <input type="password" formControlName="password" placeholder="Ingresa una nueva contraseña si deseas cambiarla" class="w-full px-3.5 py-2.5 text-xs text-slate-900 bg-white border border-slate-200 rounded-xl focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10 outline-none transition-all placeholder:text-slate-400">
+
+          @if (profileForm.get('password')?.value) {
+            <div class="mt-2 space-y-1.5 p-3 bg-slate-50 rounded-xl border border-slate-200/60">
+              <div class="flex justify-between text-[11px] text-slate-600 font-medium">
+                <span>Nivel de seguridad:</span>
+                <span class="font-bold text-slate-800">{{ passwordStrength.text }}</span>
+              </div>
+              <div class="w-full bg-slate-200/80 rounded-full h-1.5 overflow-hidden">
+                <div [class]="'h-1.5 transition-all duration-300 ' + passwordStrength.color" [style.width]="passwordStrength.width"></div>
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- Información Profesional (Trabajador) -->
+        @if (isTrabajador) {
+          <div class="pt-5 border-t border-slate-100 space-y-4">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-indigo-700 bg-indigo-50 px-2.5 py-0.5 rounded-md border border-indigo-100">
+                Detalles del Perfil Profesional
+              </span>
+            </div>
+
+            <div class="space-y-1.5">
+              <label class="block text-xs font-bold text-slate-800">Zona de Cobertura</label>
+              <input type="text" formControlName="zonaCobertura" placeholder="Ej. Ocotlán de Morelos y zonas aledañas" class="w-full px-3.5 py-2.5 text-xs text-slate-900 bg-white border border-slate-200 rounded-xl focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10 outline-none transition-all">
+            </div>
+
+            <div class="space-y-1.5">
+              <label class="block text-xs font-bold text-slate-800">Presentación / Descripción</label>
+              <textarea formControlName="descripcion" rows="3" class="w-full px-3.5 py-2.5 text-xs text-slate-900 bg-white border border-slate-200 rounded-xl focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10 outline-none transition-all resize-none"></textarea>
+            </div>
+
+            <div class="space-y-1.5">
+              <label class="block text-xs font-bold text-slate-800">Experiencia Laboral</label>
+              <textarea formControlName="experiencia" rows="2" class="w-full px-3.5 py-2.5 text-xs text-slate-900 bg-white border border-slate-200 rounded-xl focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10 outline-none transition-all resize-none"></textarea>
+            </div>
+
+            <div class="flex items-center gap-3 pt-2">
+              <input type="checkbox" formControlName="disponible" id="disponibleCheck" class="w-4 h-4 text-blue-600 rounded-md border-slate-300 focus:ring-blue-500 cursor-pointer">
+              <label for="disponibleCheck" class="text-xs font-bold text-slate-800 cursor-pointer select-none">Disponible para recibir solicitudes de trabajo</label>
+            </div>
+          </div>
+        }
+
+        <div class="pt-2">
+          <button type="submit" class="w-full sm:w-auto px-6 py-2.5 bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white text-xs font-bold rounded-xl transition-all shadow-sm flex items-center justify-center gap-2">
+            <span>Guardar Cambios</span>
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Tarjeta Secundaria: Oficios Principales (Trabajador) -->
+    @if (isTrabajador) {
+      <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 sm:p-8 space-y-5">
+        <div>
+          <h3 class="text-lg font-extrabold text-slate-900 tracking-tight">Oficios Principales</h3>
+          <p class="text-xs text-slate-500">Selecciona hasta 3 especialidades para destacar en el directorio</p>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          @for (oficio of availableOficios; track oficio.id) {
+            <button
+              type="button"
+              (click)="toggleOficio(oficio.id)"
+              [class.bg-blue-600]="isSelected(oficio.id)"
+              [class.text-white]="isSelected(oficio.id)"
+              [class.border-blue-600]="isSelected(oficio.id)"
+              [class.shadow-sm]="isSelected(oficio.id)"
+              [class.bg-slate-50]="!isSelected(oficio.id)"
+              [class.text-slate-700]="!isSelected(oficio.id)"
+              [class.border-slate-200]="!isSelected(oficio.id)"
+              class="p-3 text-xs font-bold border rounded-xl transition-all text-center flex items-center justify-center gap-2 hover:border-blue-400 active:scale-[0.98] cursor-pointer">
+              @if (isSelected(oficio.id)) {
+                <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                </svg>
+              }
+              <span>{{ oficio.nombre }}</span>
+            </button>
+          }
+        </div>
+
+        <div class="pt-2">
+          <button
+            (click)="saveOficios()"
+            [disabled]="selectedOficios.length === 0"
+            class="w-full sm:w-auto px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed active:scale-[0.98] text-white text-xs font-bold rounded-xl transition-all shadow-sm flex items-center justify-center gap-2">
+            <span>Guardar Oficios ({{ selectedOficios.length }}/3)</span>
+          </button>
+        </div>
+      </div>
+    }
+
+  </div>
+</div>
+
+<!-- Toast Notificación -->
+@if (showToast) {
+  <div class="fixed bottom-6 right-6 bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-xl border border-slate-800 flex items-center gap-3 transition-all z-50 animate-bounce">
+    <div class="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs font-bold shrink-0">✓</div>
+    <span class="text-xs font-bold pr-2">{{ toastMessage }}</span>
+  </div>
+}

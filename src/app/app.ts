@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
-import { Navbar as AppNavbar } from './components/navbar/navbar'; // Tu navbar de Tailwind
+import { NavbarComponent as AppNavbar } from './components/navbar/navbar';// Tu navbar de Tailwind
 // Importa el navbar de tu compañera si lo necesitas, o déjalo vacío para el login
 import { filter } from 'rxjs/operators';
 

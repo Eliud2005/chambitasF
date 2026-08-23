@@ -1,12 +1,10 @@
-<!-- Si estamos en login o register, NO mostramos tu Navbar de Tailwind -->
-<!-- Si estamos en cualquier otra ruta, SÍ lo mostramos -->
 @if (!isAuthPage()) {
-  <app-navbar /> 
+  <app-navbar></app-navbar>
 }
 
-<!-- Aquí se carga todo lo demás -->
-<main class="min-h-[calc(100vh-4rem)] bg-gray-50 py-8">
-  <div class="max-w-5xl mx-auto px-4">
-    <router-outlet />
+<!-- Contenedor general con textura sutil de fondo -->
+<main class="min-h-[calc(100vh-4rem)] bg-slate-50/60 bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] [background-size:16px_16px] py-10 px-4 sm:px-6 lg:px-8 flex justify-center items-start">
+  <div class="w-full max-w-5xl mx-auto space-y-8">
+    <router-outlet></router-outlet>
   </div>
 </main>

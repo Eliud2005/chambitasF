@@ -1,6 +1,8 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { AuthService } from '../../core/services/auth.service';
 
 interface Oficio {
   id: string;
@@ -16,37 +18,38 @@ interface Oficio {
 export class ProfileComponent implements OnInit {
   private fb = inject(FormBuilder);
   private router = inject(Router);
+  private http = inject(HttpClient);
+  private authService = inject(AuthService);
+  private cdr = inject(ChangeDetectorRef);
+
+  private readonly API_USERS_URL = 'http://localhost:3000/api/v1/users';
+  private readonly API_OFICIOS_URL = 'http://localhost:3000/api/v1/oficios';
 
   profileForm!: FormGroup;
   isTrabajador = false;
+  isLoading = false;
 
   showToast = false;
   toastMessage = '';
   avatarPreview: string | null = null;
+  private selectedFile: File | null = null;
 
-  availableOficios: Oficio[] = [
-    { id: '1', nombre: 'Plomería' },
-    { id: '2', nombre: 'Electricidad' },
-    { id: '3', nombre: 'Carpintería' },
-    { id: '4', nombre: 'Pintura' },
-    { id: '5', nombre: 'Jardinería' },
-    { id: '6', nombre: 'Albañilería' }
-  ];
-
-  selectedOficios: string[] = ['1', '2'];
+  availableOficios: Oficio[] = [];
+  selectedOficios: string[] = [];
 
   ngOnInit(): void {
     this.initForm();
-    this.loadFromLocalStorage();
+    this.loadAvailableOficios();
+    this.loadUserDataFromApi();
   }
 
   private initForm(): void {
     this.profileForm = this.fb.group({
-      nombre: ['', [Validators.required]],
-      apellido: ['', [Validators.required]],
-      email: ['', [Validators.required, Validators.email]],
-      telefono: ['', [Validators.required]],
-      password: ['', [Validators.required, Validators.minLength(6)]],
+      nombre: ['', [Validators.required, Validators.minLength(2)]],
+      apellido: ['', [Validators.required, Validators.minLength(2)]],
+      email: [{ value: '', disabled: true }],
+      telefono: ['', [Validators.required, Validators.pattern(/^[0-9]{7,15}$/)]],
+      password: [''],
       zonaCobertura: [''],
       descripcion: [''],
       experiencia: [''],
@@ -54,50 +57,117 @@ export class ProfileComponent implements OnInit {
     });
   }
 
-  private loadFromLocalStorage(): void {
-    const savedData = localStorage.getItem('user');
-    if (savedData) {
-      const user = JSON.parse(savedData);
-
-      this.isTrabajador = user.rol === 'TRABAJADOR';
-      this.avatarPreview = user.avatar || null;
-
-      this.profileForm.patchValue({
-        nombre: user.nombre || '',
-        apellido: user.apellido || '',
-        email: user.email || '',
-        telefono: user.telefono || '',
-        password: user.password || '',
-        zonaCobertura: user.zonaCobertura || '',
-        descripcion: user.descripcion || '',
-        experiencia: user.experiencia || '',
-        disponible: user.disponible !== undefined ? user.disponible : true
-      });
-
-      if (user.oficios && Array.isArray(user.oficios)) {
-        this.selectedOficios = user.oficios;
-      }
-    }
+  private getAuthToken(): string | null {
+    return (
+      localStorage.getItem('token') ||
+      localStorage.getItem('access_token') ||
+      localStorage.getItem('jwt') ||
+      localStorage.getItem('auth_token')
+    );
   }
 
+  private getFullAvatarUrl(path: string | null): string | null {
+    if (!path) return null;
+    if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('data:image')) {
+      return path;
+    }
+    return `http://localhost:3000${path.startsWith('/') ? '' : '/'}${path}`;
+  }
+
+  /**
+   * Carga el catálogo real de oficios con sus UUIDs desde la base de datos
+   */
+  private loadAvailableOficios(): void {
+    this.http.get<any>(this.API_OFICIOS_URL).subscribe({
+      next: (response) => {
+        const data = response?.data || response;
+        if (Array.isArray(data)) {
+          this.availableOficios = data;
+          this.cdr.detectChanges();
+        }
+      },
+      error: (err) => {
+        console.error('Error al cargar el catálogo de oficios:', err);
+      }
+    });
+  }
+
+  private loadUserDataFromApi(): void {
+    const token = this.getAuthToken();
+    const headers = token ? new HttpHeaders().set('Authorization', `Bearer ${token}`) : new HttpHeaders();
+
+    this.http.get(`${this.API_USERS_URL}/me`, { headers }).subscribe({
+      next: (response: any) => {
+        const user = response?.data || response;
+
+        if (!user || Object.keys(user).length === 0) {
+          console.warn('El objeto de usuario llegó vacío o nulo.');
+          return;
+        }
+
+        this.isTrabajador = user.rol === 'TRABAJADOR';
+        
+        const rawAvatar = user.avatar || user.fotoUrl || null;
+        this.avatarPreview = this.getFullAvatarUrl(rawAvatar);
+
+        const perfil = user.perfilTrabajador || {};
+
+        if (perfil.oficios && Array.isArray(perfil.oficios)) {
+          this.selectedOficios = perfil.oficios.map((item: any) => item.oficioId || item.oficio?.id).filter(Boolean);
+        } else if (user.oficios && Array.isArray(user.oficios)) {
+          this.selectedOficios = user.oficios.map((item: any) => item.id || item);
+        }
+
+        setTimeout(() => {
+          this.profileForm.patchValue({
+            nombre: user.nombre ?? '',
+            apellido: user.apellido ?? '',
+            email: user.email ?? '',
+            telefono: user.telefono ?? '',
+            zonaCobertura: perfil.zonaCobertura ?? user.zonaCobertura ?? '',
+            descripcion: perfil.descripcion ?? user.descripcion ?? '',
+            experiencia: perfil.experiencia ?? user.experiencia ?? '',
+            disponible: perfil.disponible !== undefined ? perfil.disponible : (user.disponible ?? true)
+          });
+
+          if (user.email) {
+            this.profileForm.get('email')?.setValue(user.email);
+          }
+
+          this.cdr.markForCheck();
+          this.cdr.detectChanges();
+        }, 50);
+      },
+      error: (err) => {
+        console.error('Error detallado al cargar perfil desde la API:', err);
+        if (err.status === 401) {
+          this.triggerToast('Sesión expirada. Por favor, inicia sesión nuevamente.');
+          this.router.navigate(['/login']);
+        }
+      }
+    });
+  }
 
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files[0]) {
-      const file = input.files[0];
+      this.selectedFile = input.files[0];
+      const file = this.selectedFile;
       const reader = new FileReader();
 
       reader.onload = () => {
         this.avatarPreview = reader.result as string;
+        this.cdr.detectChanges();
       };
 
       reader.readAsDataURL(file);
     }
   }
 
-  // Quitar la foto seleccionada
   removeAvatar(): void {
     this.avatarPreview = null;
+    this.selectedFile = null;
+    this.cdr.detectChanges();
   }
 
   get passwordStrength(): { text: string; color: string; width: string } {
@@ -111,7 +181,7 @@ export class ProfileComponent implements OnInit {
   private triggerToast(msg: string): void {
     this.toastMessage = msg;
     this.showToast = true;
-    setTimeout(() => this.showToast = false, 3000);
+    setTimeout(() => this.showToast = false, 3500);
   }
 
   toggleOficio(id: string): void {
@@ -132,43 +202,84 @@ export class ProfileComponent implements OnInit {
   }
 
   saveProfile(): void {
-    if (this.profileForm.valid) {
-      const currentStorage = JSON.parse(localStorage.getItem('user') || '{}');
+    if (this.profileForm.invalid) {
+      this.profileForm.markAllAsTouched();
+      this.triggerToast('Por favor, completa correctamente todos los campos obligatorios.');
+      return;
+    }
 
-      const updatedUser = {
-        ...currentStorage,
-        ...this.profileForm.value,
-        avatar: this.avatarPreview, 
-        oficios: this.isTrabajador ? this.selectedOficios : undefined
-      };
+    this.isLoading = true;
+    const formValues = this.profileForm.getRawValue();
 
-      localStorage.setItem('user', JSON.stringify(updatedUser));
+    const formData = new FormData();
+    formData.append('nombre', formValues.nombre);
+    formData.append('apellido', formValues.apellido);
+    formData.append('telefono', formValues.telefono);
 
-      if (this.isTrabajador) {
-        const workersList: any[] = JSON.parse(localStorage.getItem('workers_list') || '[]');
+    if (formValues.password && formValues.password.trim() !== '') {
+      formData.append('password', formValues.password);
+    }
 
-        const index = workersList.findIndex(
-          (w: any) => (updatedUser.id && w.id === updatedUser.id) || w.email === currentStorage.email || w.email === updatedUser.email
-        );
+    if (this.isTrabajador) {
+      if (formValues.zonaCobertura) formData.append('zonaCobertura', formValues.zonaCobertura);
+      if (formValues.descripcion) formData.append('descripcion', formValues.descripcion);
+      if (formValues.experiencia) formData.append('experiencia', formValues.experiencia);
+      formData.append('disponible', String(formValues.disponible));
+    }
 
-        if (index !== -1) {
-          workersList[index] = { ...workersList[index], ...updatedUser };
-        } else {
-          workersList.push(updatedUser);
+    if (this.selectedFile) {
+      formData.append('avatar', this.selectedFile);
+    }
+
+    const token = this.getAuthToken();
+    const headers = token ? new HttpHeaders().set('Authorization', `Bearer ${token}`) : new HttpHeaders();
+
+    this.http.patch(`${this.API_USERS_URL}/me`, formData, { headers }).subscribe({
+      next: (response: any) => {
+        this.isLoading = false;
+        this.selectedFile = null;
+
+        const updatedUser = response?.data || response;
+        const newRawAvatar = updatedUser?.avatar || updatedUser?.fotoUrl;
+        if (newRawAvatar) {
+          this.avatarPreview = this.getFullAvatarUrl(newRawAvatar);
         }
 
-        localStorage.setItem('workers_list', JSON.stringify(workersList));
-
-        this.triggerToast('Perfil e imagen actualizados con éxito.');
-        setTimeout(() => this.router.navigate(['/trabajadores']), 1200);
-      } else {
-        this.triggerToast('Perfil e imagen actualizados con éxito.');
-        setTimeout(() => this.router.navigate(['/trabajos']), 1200);
+        this.triggerToast('Datos y foto actualizados con éxito.');
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.isLoading = false;
+        console.error('Error al actualizar perfil:', err?.error);
+        const message = Array.isArray(err?.error?.message) 
+          ? err.error.message.join(' | ') 
+          : err?.error?.message || 'Error al actualizar el perfil.';
+        this.triggerToast(message);
       }
-    }
+    });
   }
 
   saveOficios(): void {
-    this.saveProfile();
+    this.isLoading = true;
+
+    const payload = {
+      oficios: this.selectedOficios
+    };
+
+    const token = this.getAuthToken();
+    const headers = token ? new HttpHeaders().set('Authorization', `Bearer ${token}`) : new HttpHeaders();
+
+    this.http.post(`${this.API_USERS_URL}/me/oficios`, payload, { headers }).subscribe({
+      next: () => {
+        this.isLoading = false;
+        this.triggerToast('Oficios principales actualizados con éxito.');
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.isLoading = false;
+        console.error('Error al actualizar oficios:', err?.error);
+        this.triggerToast('Error al actualizar los oficios.');
+      }
+    });
   }
 }

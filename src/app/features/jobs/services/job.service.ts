@@ -1,18 +1,31 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable, map, tap } from 'rxjs';
 
 export type PublicacionEstado = 'ABIERTA' | 'EN_PROGRESO' | 'COMPLETADA';
+
+export interface Oficio {
+  id: string; // CHAR(36) UUID
+  nombre: string; // VARCHAR(100)
+  descripcion?: string;
+  icono?: string;
+}
 
 export interface JobPost {
   id: string; // CHAR(36) UUID
   clienteId?: string; // CHAR(36) UUID del cliente creador
   oficioId: string; // CHAR(36) UUID del oficio requerido
-  oficioNombre?: string; // Para mostrar el nombre en lugar de solo el ID
+  oficio?: {
+    id: string;
+    nombre: string;
+  };
+  oficioNombre?: string;
   titulo: string; // VARCHAR(150)
   descripcion: string; // TEXT
   ubicacion: string; // VARCHAR(200)
   presupuesto?: number; // DECIMAL(10,2)
-  estado: PublicacionEstado; // ENUM ('ABIERTA', 'EN_PROGRESO', 'COMPLETADA')
-  createdAt: Date | string; // DATETIME(3)
+  estado?: PublicacionEstado; // ENUM ('ABIERTA', 'EN_PROGRESO', 'COMPLETADA')
+  createdAt?: Date | string; // DATETIME(3)
 }
 
 export interface CreateJobDto {
@@ -27,124 +40,89 @@ export interface CreateJobDto {
   providedIn: 'root',
 })
 export class JobService {
-  private readonly STORAGE_KEY = 'trades_jobs_local_db';
+  private http = inject(HttpClient);
 
-  // Datos iniciales de prueba (Mock Data)
-  private initialJobs: JobPost[] = [
-    {
-      id: crypto.randomUUID(),
-      titulo: 'Reparación de fuga de agua en tubería principal',
-      descripcion: 'Se requiere plomero para reparar fuga en tubo de PVC de 3/4 en patio trasero. Traer herramienta propia.',
-      ubicacion: 'Ocotlán de Morelos',
-      oficioId: 'plomeria',
-      oficioNombre: 'Plomería',
-      presupuesto: 450,
-      estado: 'ABIERTA',
-      createdAt: new Date().toISOString(),
-    },
-    {
-      id: crypto.randomUUID(),
-      titulo: 'Pintado de fachada de dos pisos',
-      descripcion: 'Busco pintor para aplicar sellador y dos manos de pintura vinílica en fachada exterior. Pintura ya disponible.',
-      ubicacion: 'Centro',
-      oficioId: 'pintura',
-      oficioNombre: 'Pintura',
-      presupuesto: 1200,
-      estado: 'ABIERTA',
-      createdAt: new Date().toISOString(),
-    },
-    {
-      id: crypto.randomUUID(),
-      titulo: 'Instalación de pasto sintético y poda',
-      descripcion: 'Mantenimiento general de jardín pequeño y colocación de 15m² de pasto sintético.',
-      ubicacion: 'Santa Cruz Xoxocotlán',
-      oficioId: 'jardineria',
-      oficioNombre: 'Jardinería',
-      presupuesto: 800,
-      estado: 'ABIERTA',
-      createdAt: new Date().toISOString(),
-    },
-  ];
+  // Base de la API con el prefijo global 'api/v1'
+  private readonly API_BASE_URL = 'http://localhost:3000/api/v1';
+  private readonly API_URL = `${this.API_BASE_URL}/publicaciones`;
 
-  // Señal reactiva inicializada con lo almacenado en LocalStorage o con los Mocks por defecto
-  jobs = signal<JobPost[]>(this.loadFromStorage());
+  // Estado privado con Signals
+  private _jobs = signal<JobPost[]>([]);
+
+  // Señal pública de solo lectura para los componentes
+  readonly jobs = this._jobs.asReadonly();
 
   /**
-   * Carga los datos guardados en LocalStorage. 
-   * Si es la primera vez que se ejecuta, guarda y retorna los datos de prueba iniciales.
+   * Obtiene el catálogo completo de oficios desde la BD
    */
-  private loadFromStorage(): JobPost[] {
-    if (typeof window === 'undefined' || !window.localStorage) {
-      return this.initialJobs;
-    }
-
-    const savedData = localStorage.getItem(this.STORAGE_KEY);
-    if (!savedData) {
-      this.saveToStorage(this.initialJobs);
-      return this.initialJobs;
-    }
-
-    try {
-      return JSON.parse(savedData);
-    } catch (error) {
-      console.error('Error al parsear publicaciones guardadas:', error);
-      return this.initialJobs;
-    }
+  getOficios(): Observable<Oficio[]> {
+    return this.http.get<any>(`${this.API_BASE_URL}/oficios`).pipe(
+      map((res) => (res.data ? res.data : res))
+    );
   }
 
   /**
-   * Serializa y persiste el estado actual de publicaciones en LocalStorage
+   * Carga la lista de empleos llamando a la API y actualizando el Signal.
    */
-  private saveToStorage(jobsList: JobPost[]): void {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(jobsList));
-    }
-  }
-
-  /**
-   * Agrega un nuevo trabajo a la lista reactiva y lo guarda en LocalStorage
-   */
-  addJob(dto: CreateJobDto, oficioNombre?: string): void {
-    const newJob: JobPost = {
-      id: crypto.randomUUID(),
-      titulo: dto.titulo,
-      descripcion: dto.descripcion,
-      ubicacion: dto.ubicacion,
-      oficioId: dto.oficioId,
-      oficioNombre: oficioNombre,
-      presupuesto: dto.presupuesto,
-      estado: 'ABIERTA',
-      createdAt: new Date().toISOString(),
-    };
-
-    this.jobs.update((currentJobs) => {
-      const updatedList = [newJob, ...currentJobs];
-      this.saveToStorage(updatedList);
-      return updatedList;
+  loadJobs(): void {
+    this.getJobs().subscribe({
+      error: (err: any) => console.error('Error al cargar las publicaciones de empleo:', err),
     });
   }
 
   /**
-   * Elimina un trabajo por su ID y actualiza el LocalStorage
+   * Obtiene todas las publicaciones desde el backend y actualiza la señal
    */
-  deleteJob(id: string): void {
-    this.jobs.update((currentJobs) => {
-      const updatedList = currentJobs.filter((job) => job.id !== id);
-      this.saveToStorage(updatedList);
-      return updatedList;
-    });
+  getJobs(): Observable<JobPost[]> {
+    return this.http.get<any>(this.API_URL).pipe(
+      map((res) => (res.data ? res.data : res)),
+      tap((data: JobPost[]) => this._jobs.set(data))
+    );
   }
 
   /**
-   * Actualiza el estado de un trabajo (ABIERTA | EN_PROGRESO | COMPLETADA)
+   * Obtiene una publicación específica por su ID
    */
-  updateJobStatus(id: string, nuevoEstado: PublicacionEstado): void {
-    this.jobs.update((currentJobs) => {
-      const updatedList = currentJobs.map((job) =>
-        job.id === id ? { ...job, estado: nuevoEstado } : job
-      );
-      this.saveToStorage(updatedList);
-      return updatedList;
-    });
+  getJobById(id: string): Observable<JobPost> {
+    return this.http.get<any>(`${this.API_URL}/${id}`).pipe(
+      map((res) => (res.data ? res.data : res))
+    );
+  }
+
+  /**
+   * Crea una nueva publicación en la BD y actualiza la lista local de forma reactiva
+   */
+  addJob(dto: CreateJobDto): Observable<JobPost> {
+    return this.http.post<any>(this.API_URL, dto).pipe(
+      map((res) => (res.data ? res.data : res)),
+      tap((newJob: JobPost) => {
+        this._jobs.update((current) => [newJob, ...current]);
+      })
+    );
+  }
+
+  /**
+   * Elimina una publicación por ID en la BD y la remueve del estado local
+   */
+  deleteJob(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.API_URL}/${id}`).pipe(
+      tap(() => {
+        this._jobs.update((current) => current.filter((job) => job.id !== id));
+      })
+    );
+  }
+
+  /**
+   * Actualiza el estado de una publicación (ABIERTA | EN_PROGRESO | COMPLETADA)
+   */
+  updateJobStatus(id: string, nuevoEstado: PublicacionEstado): Observable<JobPost> {
+    return this.http.patch<any>(`${this.API_URL}/${id}/estado`, { estado: nuevoEstado }).pipe(
+      map((res) => (res.data ? res.data : res)),
+      tap((updatedJob: JobPost) => {
+        this._jobs.update((current) =>
+          current.map((job) => (job.id === id ? updatedJob : job))
+        );
+      })
+    );
   }
 }

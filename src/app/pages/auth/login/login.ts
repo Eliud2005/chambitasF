@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { AuthService } from '../../../core/services/auth.service'; // Ajusta la ruta a tu AuthService unificado
 
 @Component({
   selector: 'app-login',
@@ -11,8 +12,8 @@ import { Router, RouterLink } from '@angular/router';
 export class LoginComponent {
   private fb = inject(FormBuilder);
   private router = inject(Router);
+  private authService = inject(AuthService);
 
-  // Propiedades requeridas para la interfaz
   isLoading: boolean = false;
   errorMessage: string = '';
 
@@ -30,23 +31,21 @@ export class LoginComponent {
     }
 
     this.isLoading = true;
-    const { email, password } = this.loginForm.value;
+    const credentials = this.loginForm.value;
 
-    const registeredUsers = JSON.parse(localStorage.getItem('users_db') || '[]');
-    const user = registeredUsers.find((u: any) => u.email === email && u.password === password);
-
-    if (user) {
-      // Iniciar sesión guardando la sesión activa
-      localStorage.setItem('user', JSON.stringify(user));
-      
-      this.isLoading = false;
-      alert(`¡Bienvenido de nuevo, ${user.nombre}!`);
-      
-      // Redirigir al feed de empleos
-      this.router.navigate(['/jobs']);
-    } else {
-      this.isLoading = false;
-      this.errorMessage = 'Correo o contraseña incorrectos.';
-    }
+    // Petición HTTP al backend (NestJS -> Prisma -> MariaDB)
+    this.authService.login(credentials).subscribe({
+      next: (response) => {
+        this.isLoading = false;
+        
+        // Redirigir al feed de empleos tras iniciar sesión exitosamente
+        this.router.navigate(['/jobs']);
+      },
+      error: (err) => {
+        this.isLoading = false;
+        // Capturar el mensaje de error que regresa NestJS (ej: 401 Unauthorized)
+        this.errorMessage = err?.error?.message || 'Correo o contraseña incorrectos.';
+      }
+    });
   }
 }

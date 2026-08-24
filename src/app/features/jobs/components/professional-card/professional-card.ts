@@ -14,25 +14,46 @@ import { ProfessionalProfile } from '../../models/professional.model';
 export class ProfessionalCard {
   professional = input.required<ProfessionalProfile>();
 
-  // Obtiene el oficio principal o el primero de la lista
-  primaryOficio = computed(() => {
-    const p = this.professional();
-    const principal = p.oficios?.find((o) => o.principal)?.oficio.nombre;
-    return principal || p.oficios?.[0]?.oficio.nombre || 'Servicios Generales';
+  // Obtiene el nombre del trabajador (soporta estructura directa o anidada en 'usuario')
+  fullName = computed(() => {
+    const p = this.professional() as any;
+    const nombre = p.nombre || p.usuario?.nombre || 'Profesional';
+    const apellido = p.apellido || p.usuario?.apellido || '';
+    return `${nombre} ${apellido}`.trim();
   });
 
-  // Genera el enlace de WhatsApp formateando el teléfono de México (521)
+  // Obtiene el número de teléfono (soporta estructura directa o anidada en 'usuario')
+  phone = computed(() => {
+    const p = this.professional() as any;
+    return p.telefono || p.usuario?.telefono || '';
+  });
+
+  // Obtiene el oficio principal de forma segura
+  primaryOficio = computed(() => {
+    const p = this.professional() as any;
+    if (!p.oficios || p.oficios.length === 0) return 'Servicios Generales';
+
+    const firstItem = p.oficios[0];
+    
+    // Soporta ambas relaciones de TypeORM: [{ oficio: { nombre: '...' } }] o [{ nombre: '...' }]
+    return firstItem?.oficio?.nombre || firstItem?.nombre || 'Servicios Generales';
+  });
+
+  // Genera el enlace directo a WhatsApp
   whatsappUrl = computed(() => {
-    const p = this.professional();
+    const rawPhone = this.phone();
+    const name = this.fullName();
     const oficio = this.primaryOficio();
-    const cleanDigits = (p.telefono || '').replace(/\D/g, '');
+
+    const cleanDigits = rawPhone.replace(/\D/g, '');
     
-    // Antepone lada nacional 521 si el número tiene 10 dígitos
+    // Si el número tiene 10 dígitos (formato MX), se antepone la clave de país (521)
     const fullPhone = cleanDigits.length === 10 ? `521${cleanDigits}` : cleanDigits;
-    
-    const text = encodeURIComponent(
-      `Hola ${p.nombre}, vi tu perfil en la plataforma y me gustaría solicitar información sobre tus servicios de ${oficio}.`
+
+    const message = encodeURIComponent(
+      `Hola ${name}, vi tu perfil en la plataforma y me gustaría solicitar información sobre tus servicios de ${oficio}.`
     );
-    return `https://wa.me/${fullPhone}?text=${text}`;
+
+    return `https://wa.me/${fullPhone}?text=${message}`;
   });
 }

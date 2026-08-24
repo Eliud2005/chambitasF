@@ -1,7 +1,7 @@
-import { Component, inject, output } from '@angular/core';
+import { Component, inject, output, signal } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
-import { AuthService } from '../../services/auth.service';
+import { AuthService } from '../../../../core/services/auth.service';
 import { ProfessionalService } from '../../services/professional.service';
 import { RegisterDto } from '../../models/auth.model';
 
@@ -18,6 +18,10 @@ export class ProfessionalForm {
   private router = inject(Router);
 
   formSubmitted = output<void>();
+
+  // Estados de carga y error para la UI
+  isLoading = signal<boolean>(false);
+  errorMessage = signal<string>('');
 
   // Municipios / Zonas de cobertura
   locations: string[] = [
@@ -47,9 +51,12 @@ export class ProfessionalForm {
       return;
     }
 
+    this.isLoading.set(true);
+    this.errorMessage.set('');
+
     const val = this.form.value;
 
-    // 1. DTO exacto para NestJS (POST /auth/register)
+    // DTO exacto para NestJS (POST /auth/register)
     const registerData: RegisterDto = {
       nombre: val.nombre,
       apellido: val.apellido,
@@ -62,33 +69,21 @@ export class ProfessionalForm {
       descripcion: val.descripcion,
     };
 
-    // 2. Registro local previo/fallback para alimentar las Signals y localStorage
-    this.professionalService.registerLocalProfessional({
-      nombre: val.nombre,
-      apellido: val.apellido,
-      email: val.email,
-      telefono: val.telefono,
-      zonaCobertura: val.zonaCobertura,
-      experiencia: val.experiencia,
-      descripcion: val.descripcion,
-    });
-
-    // 3. Petición a la API de NestJS
+    // Petición directa a la base de datos a través de la API
     this.authService.register(registerData).subscribe({
       next: () => {
-        // Recargar desde el servidor si la API respondió correctamente
+        this.isLoading.set(false);
+        // Recarga la lista global de profesionales desde la BD
         this.professionalService.loadProfessionals();
         this.formSubmitted.emit();
         this.router.navigate(['/profesional-feed']);
       },
       error: (err) => {
-        console.warn(
-          'Servidor no disponible o falló la API. Los datos se conservarán localmente:',
-          err
+        this.isLoading.set(false);
+        console.error('Error al registrar el profesional en la base de datos:', err);
+        this.errorMessage.set(
+          err?.error?.message || 'No se pudo completar el registro. Intenta nuevamente.'
         );
-        // Aun si falla el backend en local, redirige y emite evento con la data guardada en localStorage
-        this.formSubmitted.emit();
-        this.router.navigate(['/profesional-feed']);
       },
     });
   }

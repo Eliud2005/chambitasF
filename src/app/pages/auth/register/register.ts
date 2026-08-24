@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-register',
@@ -11,6 +12,10 @@ import { Router, RouterLink } from '@angular/router';
 export class RegisterComponent {
   private fb = inject(FormBuilder);
   private router = inject(Router);
+  private authService = inject(AuthService);
+
+  isLoading = false;
+  errorMessage = '';
 
   registerForm: FormGroup = this.fb.group({
     rol: ['TRABAJADOR', [Validators.required]],
@@ -20,6 +25,7 @@ export class RegisterComponent {
     telefono: ['', [Validators.required, Validators.pattern('^[0-9]{10}$')]],
     password: ['', [Validators.required, Validators.minLength(6)]],
     zonaCobertura: [''],
+    experiencia: [''],
     descripcion: ['']
   });
 
@@ -28,38 +34,34 @@ export class RegisterComponent {
   }
 
   onSubmit(): void {
-    if (this.registerForm.valid) {
-      const formData = this.registerForm.value;
+    this.errorMessage = '';
 
-      const newUser = {
-        id: Date.now().toString(),
-        ...formData,
-        oficios: this.isWorker() ? [] : undefined,
-        disponible: this.isWorker() ? true : undefined
-      };
-
-      // Guardar en la base de datos de usuarios registrados
-      const registeredUsers = JSON.parse(localStorage.getItem('users_db') || '[]');
-      
-      // Validar si el email ya existe
-      if (registeredUsers.some((u: any) => u.email === formData.email)) {
-        alert('Este correo ya está registrado.');
-        return;
-      }
-
-      registeredUsers.push(newUser);
-      localStorage.setItem('users_db', JSON.stringify(registeredUsers));
-
-      // Si es trabajador, se añade también al directorio público
-      if (this.isWorker()) {
-        const existingWorkers = JSON.parse(localStorage.getItem('workers_list') || '[]');
-        existingWorkers.push(newUser);
-        localStorage.setItem('workers_list', JSON.stringify(existingWorkers));
-      }
-
-      alert('¡Registro exitoso! Por favor inicia sesión.');
-      // Redirigir al login tras el registro exitoso
-      this.router.navigate(['/login']);
+    if (this.registerForm.invalid) {
+      this.registerForm.markAllAsTouched();
+      return;
     }
+
+    this.isLoading = true;
+    const formData = { ...this.registerForm.value };
+
+    // Si el usuario no es trabajador, limpiamos los datos de perfil para evitar enviar cadenas vacías
+    if (!this.isWorker()) {
+      delete formData.zonaCobertura;
+      delete formData.experiencia;
+      delete formData.descripcion;
+    }
+
+    // Petición HTTP al backend (NestJS -> Prisma / TypeORM)
+    this.authService.register(formData).subscribe({
+      next: () => {
+        this.isLoading = false;
+        alert('¡Registro exitoso! Ya puedes iniciar sesión.');
+        this.router.navigate(['/login']);
+      },
+      error: (err) => {
+        this.isLoading = false;
+        this.errorMessage = err?.error?.message || 'Ocurrió un error al registrar la cuenta.';
+      }
+    });
   }
 }

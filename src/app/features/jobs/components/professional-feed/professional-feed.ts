@@ -17,16 +17,17 @@ import { FormsModule } from '@angular/forms';
 export class ProfessionalFeed implements OnInit {
   private professionalService = inject(ProfessionalService);
 
-  // Signals consumidos por el HTML
+  // Readonly Signals expuestas desde el servicio para el HTML
   professionals = this.professionalService.professionals;
-  oficios = this.professionalService.oficios; // <-- CORREGIDO: Exposición del Signal de oficios
+  oficios = this.professionalService.oficios;
+  isLoading = this.professionalService.isLoading;
 
-  // Filtros locales
+  // Filtros vinculados
   selectedZona = signal<string>('');
   selectedOficioId = signal<string>('');
   onlyAvailable = signal<boolean>(true);
 
-  // Lista de zonas para el selector
+  // Lista de municipios para el filtro de zona
   locations: string[] = [
     'Ocotlán de Morelos',
     'San Antonino Castillo Velasco',
@@ -36,13 +37,14 @@ export class ProfessionalFeed implements OnInit {
   ];
 
   ngOnInit(): void {
-    // CORREGIDO: Cargar el catálogo de oficios al iniciar
+    // Carga catálogo de oficios y lista filtrada de profesionales desde la base de datos
     this.professionalService.loadOficios();
-    
-    // Carga inicial de trabajadores desde la API
     this.fetchProfessionals();
   }
 
+  /**
+   * Consulta el backend con los parámetros actuales
+   */
   fetchProfessionals(): void {
     this.professionalService.loadProfessionals({
       zona: this.selectedZona() || undefined,
@@ -51,6 +53,9 @@ export class ProfessionalFeed implements OnInit {
     });
   }
 
+  /**
+   * Manejador de eventos al cambiar selectores o checkbox en la plantilla
+   */
   onFilterChange(): void {
     this.fetchProfessionals();
   }

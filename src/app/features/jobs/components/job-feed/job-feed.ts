@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
 import { JobCard } from '../job-card/job-card';
 import { JobFilter } from '../job-filter/job-filter';
 import { JobService } from '../../services/job.service';
@@ -10,61 +10,64 @@ import { JobService } from '../../services/job.service';
   templateUrl: './job-feed.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class JobFeed {
+export class JobFeed implements OnInit {
   protected jobService = inject(JobService);
 
-  // Señales para controlar los 3 filtros (valores iniciales vacíos)
+  // Señales de filtros de interfaz
   searchQuery = signal<string>('');
-  selectedCategory = signal<string>(''); // Vacio = Todos los oficios / ID del oficio
-  selectedLocation = signal<string>(''); // Vacio = Todas las zonas
+  selectedCategory = signal<string>(''); // Vacío = Todos / ID del oficio
+  selectedLocation = signal<string>(''); // Vacío = Todas las zonas
 
-  // Control de Paginación
+  // Paginación
   currentPage = signal<number>(1);
   pageSize = signal<number>(6);
 
-  // 1. Filtro reactivo en memoria combinando texto, categoría/oficio y zona
+  ngOnInit(): void {
+    // Carga inicial de publicaciones de empleo desde la API de NestJS
+    this.jobService.loadJobs();
+  }
+
+  // 1. Filtro reactivo combinando los datos devueltos por el backend
   filteredJobs = computed(() => {
     const query = this.searchQuery().toLowerCase().trim();
     const categoryId = this.selectedCategory();
     const location = this.selectedLocation().trim().toLowerCase();
 
-    return this.jobService.jobs().filter((job) => {
-      // Coincidencia por texto en nombre, título o descripción
-    // Coincidencia por texto en título o descripción
-const matchesSearch =
-  !query ||
-  job.titulo.toLowerCase().includes(query) ||
-  job.descripcion.toLowerCase().includes(query) ||
-  (job.oficioNombre ? job.oficioNombre.toLowerCase().includes(query) : false);
+    return this.jobService.jobs().filter((job: any) => {
+      // Coincidencia por texto en título, descripción o nombre del oficio
+      const oficioNombre = job.oficio?.nombre || job.oficioNombre || '';
+      const matchesSearch =
+        !query ||
+        job.titulo?.toLowerCase().includes(query) ||
+        job.descripcion?.toLowerCase().includes(query) ||
+        oficioNombre.toLowerCase().includes(query);
 
-// Coincidencia por oficio (oficioId)
-const matchesCategory =
-  !categoryId ||
-  job.oficioId === categoryId;
+      // Coincidencia por ID de oficio
+      const jobOficioId = job.oficioId || job.oficio?.id || '';
+      const matchesCategory = !categoryId || jobOficioId === categoryId;
 
-// Coincidencia por ubicación
-const matchesLocation =
-  !location ||
-  job.ubicacion.toLowerCase().includes(location);
+      // Coincidencia por ubicación / zona
+      const matchesLocation =
+        !location ||
+        job.ubicacion?.toLowerCase().includes(location);
 
-return matchesSearch && matchesCategory && matchesLocation;
-      
+      return matchesSearch && matchesCategory && matchesLocation;
     });
   });
 
-  // 2. Total de páginas calculadas dinámicamente
+  // 2. Cálculo dinámico de páginas totales
   totalPages = computed(() =>
     Math.max(1, Math.ceil(this.filteredJobs().length / this.pageSize()))
   );
 
-  // 3. Subconjunto de elementos para la página actual
+  // 3. Obtención del subconjunto paginado para la vista
   paginatedJobs = computed(() => {
     const start = (this.currentPage() - 1) * this.pageSize();
     const end = start + this.pageSize();
     return this.filteredJobs().slice(start, end);
   });
 
-  // Manejadores de eventos emitidos desde <app-job-filter />
+  // Escuchadores de eventos de filtros
   onSearch(query: string): void {
     this.searchQuery.set(query);
     this.currentPage.set(1);

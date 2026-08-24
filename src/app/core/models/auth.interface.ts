@@ -1,5 +1,12 @@
 export type Role = 'CLIENTE' | 'TRABAJADOR';
-
+export interface User {
+  id: string;
+  nombre: string;
+  apellido: string;
+  email: string;
+  rol: Role;
+  avatar?: string;
+}
 
 export interface RegisterDto {
   nombre: string;
@@ -28,6 +35,7 @@ export interface AuthResponse {
     apellido: string;
     email: string;
     rol: Role;
+    avatar?: string;
   };
 }
 

@@ -33,16 +33,19 @@
           <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">
             Categoría / Oficio <span class="text-red-500">*</span>
           </label>
-          <select
-            formControlName="oficioId"
-            class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <option value="" disabled selected>Selecciona categoría</option>
-            @for (cat of categories; track cat.id) {
-              <option [value]="cat.id">{{ cat.nombre }}</option>
-            }
-          </select>
+ <select
+  formControlName="oficioId"
+  class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+  <option value="" disabled selected>Selecciona un oficio</option>
+
+  <!-- ❌ Error anterior: @for (oficio of oficios; track oficio.id) -->
+  <!-- ✅ Correcto: invocar el signal con () -->
+  @for (oficio of oficios(); track oficio.id) {
+    <option [value]="oficio.id">{{ oficio.nombre }}</option>
+  }
+</select>
           @if (form.get('oficioId')?.invalid && form.get('oficioId')?.touched) {
-            <p class="text-red-500 text-xs mt-1">Selecciona una categoría.</p>
+            <p class="text-red-500 text-xs mt-1">Selecciona un oficio.</p>
           }
         </div>
 

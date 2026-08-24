@@ -1,6 +1,6 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, map, tap } from 'rxjs';
 import { Oficio, ProfessionalProfile, Review } from '../models/professional.model';
 
 export interface ProfessionalFilter {
@@ -26,14 +26,11 @@ export interface RegisterProfessionalDto {
 })
 export class ProfessionalService {
   private http = inject(HttpClient);
-  
-  // Clave para guardar en el navegador de forma temporal
-  private readonly STORAGE_KEY = 'local_professionals_data';
 
-  // URL base apuntando a la API REST de NestJS
-  private readonly API_URL = 'http://localhost:3000/api';
+  // URL base apuntando al prefijo global api/v1 de NestJS
+  private readonly API_URL = 'http://localhost:3000/api/v1';
 
-  // Signals para manejar el estado global
+  // Signals para manejar el estado global de forma reactiva
   private professionalsSignal = signal<ProfessionalProfile[]>([]);
   private oficiosSignal = signal<Oficio[]>([]);
   private loadingSignal = signal<boolean>(false);
@@ -43,76 +40,20 @@ export class ProfessionalService {
   oficios = this.oficiosSignal.asReadonly();
   isLoading = this.loadingSignal.asReadonly();
 
-  constructor() {
-    // Carga inicial de datos locales si existen
-    this.loadLocalProfessionals();
-  }
-
   /**
-   * Carga los profesionales guardados localmente
-   */
-  private getLocalProfessionals(): ProfessionalProfile[] {
-    const data = localStorage.getItem(this.STORAGE_KEY);
-    if (!data) return [];
-    try {
-      return JSON.parse(data);
-    } catch {
-      return [];
-    }
-  }
-
-  private loadLocalProfessionals(): void {
-    const local = this.getLocalProfessionals();
-    if (local.length > 0) {
-      this.professionalsSignal.set(local);
-    }
-  }
-
-  /**
-   * Registra un nuevo profesional localmente en localStorage y en la señal
-   */
-  registerLocalProfessional(dto: RegisterProfessionalDto): void {
-    const newProfile: ProfessionalProfile = {
-      id: crypto.randomUUID(),
-      usuario: {
-        id: crypto.randomUUID(),
-        nombre: dto.nombre,
-        apellido: dto.apellido,
-        email: dto.email,
-        telefono: dto.telefono,
-      },
-      experiencia: dto.experiencia,
-      descripcion: dto.descripcion,
-      zonaCobertura: dto.zonaCobertura,
-      disponible: true,
-      calificacionPromedio: 5.0,
-      oficios: dto.oficioId ? [{ id: dto.oficioId, nombre: 'Oficio Seleccionado' }] : [],
-      createdAt: new Date().toISOString(),
-    } as unknown as ProfessionalProfile; // Casteo según el modelo ProfessionalProfile
-
-    const localActuales = this.getLocalProfessionals();
-    const actualizados = [newProfile, ...localActuales];
-
-    // Guarda en localStorage
-    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(actualizados));
-
-    // Actualiza la señal reactiva
-    this.professionalsSignal.update((current) => [newProfile, ...current]);
-  }
-
-  /**
-   * Carga catálogo público de oficios (GET /api/oficios)
+   * Carga el catálogo público de oficios (GET /api/v1/oficios)
    */
   loadOficios(): void {
-    this.http.get<Oficio[]>(`${this.API_URL}/oficios`).subscribe({
-      next: (data) => this.oficiosSignal.set(data),
+    this.http.get<any>(`${this.API_URL}/oficios`).pipe(
+      map((res) => (res.data ? res.data : res))
+    ).subscribe({
+      next: (data: Oficio[]) => this.oficiosSignal.set(data),
       error: (err) => console.error('Error al cargar catálogo de oficios:', err),
     });
   }
 
   /**
-   * Obtener lista de trabajadores filtrada desde NestJS (GET /api/trabajadores)
-   * Si la API falla (por estar offline), mantiene los datos guardados en localStorage.
+   * Obtener lista de trabajadores filtrada (GET /api/v1/trabajadores)
    */
   loadProfessionals(filters?: ProfessionalFilter): void {
     this.loadingSignal.set(true);
@@ -123,26 +64,48 @@ export class ProfessionalService {
     if (filters?.disponible !== undefined) params = params.set('disponible', filters.disponible.toString());
     if (filters?.q) params = params.set('q', filters.q);
 
-    this.http.get<ProfessionalProfile[]>(`${this.API_URL}/trabajadores`, { params }).subscribe({
-      next: (apiData) => {
-        const localData = this.getLocalProfessionals();
-        // Fusiona datos del backend con los guardados en localStorage
-        this.professionalsSignal.set([...localData, ...apiData]);
+    this.http.get<any>(`${this.API_URL}/trabajadores`, { params }).pipe(
+      map((res) => (res.data ? res.data : res))
+    ).subscribe({
+      next: (apiData: ProfessionalProfile[]) => {
+        this.professionalsSignal.set(apiData);
         this.loadingSignal.set(false);
       },
       error: (err) => {
-        console.warn('Backend offline o inalcanzable. Usando datos de localStorage.', err);
-        this.loadLocalProfessionals();
+        console.error('Error al consultar trabajadores en la base de datos:', err);
+        this.professionalsSignal.set([]);
         this.loadingSignal.set(false);
       },
     });
   }
 
-  getProfessionalById(id: string): Observable<ProfessionalProfile> {
-    return this.http.get<ProfessionalProfile>(`${this.API_URL}/trabajadores/${id}`);
+  /**
+   * Registra un nuevo profesional mediante POST HTTP (POST /api/v1/trabajadores)
+   */
+  registerProfessional(dto: RegisterProfessionalDto): Observable<ProfessionalProfile> {
+    return this.http.post<any>(`${this.API_URL}/trabajadores`, dto).pipe(
+      map((res) => (res.data ? res.data : res)),
+      tap((newProfile: ProfessionalProfile) => {
+        this.professionalsSignal.update((current) => [newProfile, ...current]);
+      })
+    );
   }
 
+  /**
+   * Obtiene la información detallada de un profesional por su ID (GET /api/v1/trabajadores/:id)
+   */
+  getProfessionalById(id: string): Observable<ProfessionalProfile> {
+    return this.http.get<any>(`${this.API_URL}/trabajadores/${id}`).pipe(
+      map((res) => (res.data ? res.data : res))
+    );
+  }
+
+  /**
+   * Obtiene la lista de reseñas de un trabajador específico (GET /api/v1/trabajadores/:id/resenas)
+   */
   getProfessionalReviews(trabajadorId: string): Observable<Review[]> {
-    return this.http.get<Review[]>(`${this.API_URL}/trabajadores/${trabajadorId}/resenas`);
+    return this.http.get<any>(`${this.API_URL}/trabajadores/${trabajadorId}/resenas`).pipe(
+      map((res) => (res.data ? res.data : res))
+    );
   }
 }

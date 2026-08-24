@@ -1,12 +1,7 @@
-import { Component, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
-import { JobService, CreateJobDto } from '../../services/job.service';
-
-export interface OficioOption {
-  id: string;
-  nombre: string;
-}
+import { JobService, CreateJobDto, Oficio } from '../../services/job.service';
 
 @Component({
   selector: 'app-job-create-form',
@@ -14,22 +9,16 @@ export interface OficioOption {
   imports: [ReactiveFormsModule, RouterLink, RouterLinkActive],
   templateUrl: './job-create-form.html',
 })
-export class JobCreateForm {
+export class JobCreateForm implements OnInit {
   private fb = inject(FormBuilder);
   private jobService = inject(JobService);
   private router = inject(Router);
 
-  // Mapeo de oficios con sus identificadores
-  categories: OficioOption[] = [
-    { id: 'plomeria', nombre: 'Plomería' },
-    { id: 'pintura', nombre: 'Pintura' },
-    { id: 'electricidad', nombre: 'Electricidad' },
-    { id: 'carpinteria', nombre: 'Carpintería' },
-    { id: 'limpieza', nombre: 'Limpieza' },
-    { id: 'jardineria', nombre: 'Jardinería' },
-    { id: 'construccion', nombre: 'Construcción' },
-    { id: 'mecanica', nombre: 'Mecánica' },
-  ];
+  isLoading = signal<boolean>(false);
+  errorMessage = signal<string>('');
+
+  // Signal con tipado estricto para la lista de oficios
+  oficios = signal<Oficio[]>([]);
 
   locations: string[] = [
     'Ocotlán de Morelos',
@@ -48,10 +37,21 @@ export class JobCreateForm {
     oficioId: ['', [Validators.required]],
     ubicacion: ['', [Validators.required]],
     presupuesto: [null, [Validators.min(0)]],
-    // Validamos estrictamente 10 dígitos para el número nacional
     telefonoContacto: ['', [Validators.required, Validators.pattern('^[0-9]{10}$')]],
     descripcion: ['', [Validators.required, Validators.minLength(15)]],
   });
+
+  ngOnInit(): void {
+    this.getOficios();
+  }
+
+  getOficios(): void {
+    this.jobService.getOficios().subscribe({
+      // ✅ Se declaran explícitamente los tipos para evitar el error TS7006
+      next: (data: Oficio[]) => this.oficios.set(data),
+      error: (err: any) => console.error('Error al cargar la lista de oficios:', err),
+    });
+  }
 
   onSubmit(): void {
     if (this.form.invalid) {
@@ -59,16 +59,15 @@ export class JobCreateForm {
       return;
     }
 
+    this.isLoading.set(true);
+    this.errorMessage.set('');
+
     const { titulo, oficioId, ubicacion, presupuesto, telefonoContacto, descripcion } = this.form.value;
 
-    // Aseguramos formato internacional para WhatsApp agregando el prefijo 521 si no lo tiene
     const cleanPhone = telefonoContacto?.trim() || '';
     const phoneFormatted = cleanPhone.startsWith('521')
       ? cleanPhone
       : `521${cleanPhone}`;
-
-    // Buscar el nombre del oficio para mostrarlo en las tarjetas del feed
-    const oficioSeleccionado = this.categories.find((cat) => cat.id === oficioId);
 
     const dto: CreateJobDto = {
       titulo: titulo || '',
@@ -78,10 +77,18 @@ export class JobCreateForm {
       descripcion: `${descripcion || ''}\n\nContacto: ${phoneFormatted}`,
     };
 
-    // Llama al servicio que guarda en localStorage de forma reactiva
-    this.jobService.addJob(dto, oficioSeleccionado?.nombre);
-
-    // Redirige al inicio / feed de trabajos
-    this.router.navigate(['/jobs']);
+    this.jobService.addJob(dto).subscribe({
+      next: () => {
+        this.isLoading.set(false);
+        this.router.navigate(['/jobs']);
+      },
+      error: (err: any) => {
+        this.isLoading.set(false);
+        console.error('Error al guardar la publicación en la BD:', err);
+        this.errorMessage.set(
+          err?.error?.message || 'Ocurrió un error al intentar crear la publicación.'
+        );
+      },
+    });
   }
 }

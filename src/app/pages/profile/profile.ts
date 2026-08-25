@@ -24,6 +24,9 @@ export class ProfileComponent implements OnInit {
   toastMessage = '';
   avatarPreview: string | null = null;
 
+
+  lastLoginDate: string = '';
+
   availableOficios: Oficio[] = [
     { id: '1', nombre: 'Plomería' },
     { id: '2', nombre: 'Electricidad' },
@@ -38,6 +41,11 @@ export class ProfileComponent implements OnInit {
   ngOnInit(): void {
     this.initForm();
     this.loadFromLocalStorage();
+    this.lastLoginDate = new Date().toLocaleDateString('es-ES', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric'
+    });
   }
 
   private initForm(): void {
@@ -80,7 +88,6 @@ export class ProfileComponent implements OnInit {
     }
   }
 
-
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files[0]) {
@@ -95,23 +102,23 @@ export class ProfileComponent implements OnInit {
     }
   }
 
-  // Quitar la foto seleccionada
   removeAvatar(): void {
     this.avatarPreview = null;
-  }
-
-  get passwordStrength(): { text: string; color: string; width: string } {
-    const pwd = this.profileForm.get('password')?.value || '';
-    if (pwd.length === 0) return { text: '', color: '', width: '0%' };
-    if (pwd.length < 6) return { text: 'Débil', color: 'bg-red-500', width: '33%' };
-    if (pwd.length < 10) return { text: 'Media', color: 'bg-yellow-500', width: '66%' };
-    return { text: 'Fuerte', color: 'bg-emerald-500', width: '100%' };
   }
 
   private triggerToast(msg: string): void {
     this.toastMessage = msg;
     this.showToast = true;
     setTimeout(() => this.showToast = false, 3000);
+  }
+
+
+  logout(): void {
+    localStorage.removeItem('user');
+    this.triggerToast('Sesión cerrada correctamente.');
+    setTimeout(() => {
+      this.router.navigate(['/login']);
+    }, 1000);
   }
 
   toggleOficio(id: string): void {
@@ -138,7 +145,7 @@ export class ProfileComponent implements OnInit {
       const updatedUser = {
         ...currentStorage,
         ...this.profileForm.value,
-        avatar: this.avatarPreview, 
+        avatar: this.avatarPreview,
         oficios: this.isTrabajador ? this.selectedOficios : undefined
       };
 
@@ -159,10 +166,10 @@ export class ProfileComponent implements OnInit {
 
         localStorage.setItem('workers_list', JSON.stringify(workersList));
 
-        this.triggerToast('Perfil e imagen actualizados con éxito.');
+        this.triggerToast('Perfil actualizado con éxito.');
         setTimeout(() => this.router.navigate(['/trabajadores']), 1200);
       } else {
-        this.triggerToast('Perfil e imagen actualizados con éxito.');
+        this.triggerToast('Perfil actualizado con éxito.');
         setTimeout(() => this.router.navigate(['/trabajos']), 1200);
       }
     }
@@ -172,3 +179,4 @@ export class ProfileComponent implements OnInit {
     this.saveProfile();
   }
 }
+

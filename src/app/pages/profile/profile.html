@@ -2,26 +2,25 @@
   <div class="max-w-2xl mx-auto space-y-6">
 
     <div class="bg-white rounded-xl shadow border border-slate-100 p-6">
-
       <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
         <div>
           <h2 class="text-xl font-bold text-slate-800">Mi Perfil</h2>
-          <p class="text-xs text-slate-500">Actualiza tus datos de usuario e imagen de perfil</p>
+          <p class="text-xs text-slate-500">Actualiza tus datos personales e imagen</p>
         </div>
 
         <span [class]="isTrabajador ? 'bg-indigo-100 text-indigo-700 border-indigo-200' : 'bg-emerald-100 text-emerald-700 border-emerald-200'"
               class="px-3 py-1 rounded-full text-xs font-semibold border flex items-center gap-1">
-          {{ isTrabajador ? ' Cuenta de Trabajador' : ' Cuenta de Cliente' }}
+          {{ isTrabajador ? '🛠️ Cuenta de Trabajador' : '👤 Cuenta de Cliente' }}
         </span>
       </div>
 
-      
+
       <div class="flex items-center gap-4 mb-6 p-3 bg-slate-50 rounded-xl border border-slate-200/60">
         <div class="relative w-16 h-16 rounded-full bg-slate-200 border-2 border-white shadow overflow-hidden flex items-center justify-center shrink-0">
           @if (avatarPreview) {
             <img [src]="avatarPreview" alt="Avatar" class="w-full h-full object-cover">
           } @else {
-
+            <span class="text-2xl text-slate-400">👤</span>
           }
         </div>
 
@@ -68,18 +67,6 @@
         <div>
           <label class="block text-xs font-semibold text-slate-600 mb-1">Contraseña</label>
           <input type="password" formControlName="password" placeholder="••••••••" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-
-          @if (profileForm.get('password')?.value) {
-            <div class="mt-2 space-y-1">
-              <div class="flex justify-between text-xs text-slate-500">
-                <span>Seguridad de la clave:</span>
-                <span class="font-semibold">{{ passwordStrength.text }}</span>
-              </div>
-              <div class="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
-                <div [class]="'h-1.5 transition-all duration-300 ' + passwordStrength.color" [style.width]="passwordStrength.width"></div>
-              </div>
-            </div>
-          }
         </div>
 
         @if (isTrabajador) {
@@ -143,6 +130,20 @@
         </button>
       </div>
     }
+
+
+    <div class="bg-white rounded-xl shadow border border-slate-100 p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div>
+        <h4 class="text-sm font-bold text-slate-800">Estado de la Sesión</h4>
+        <p class="text-xs text-slate-500">Sesión activa desde el {{ lastLoginDate }}</p>
+      </div>
+      <button
+        type="button"
+        (click)="logout()"
+        class="w-full sm:w-auto px-4 py-2 border border-red-200 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold rounded-lg transition-colors flex items-center justify-center gap-1.5">
+        🚪 Cerrar Sesión
+      </button>
+    </div>
 
   </div>
 </div>

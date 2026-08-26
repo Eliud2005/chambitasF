@@ -1,131 +1,147 @@
-<div class="max-w-2xl mx-auto py-2">
-  <div class="bg-white rounded-xl border border-gray-200 p-6 sm:p-8 shadow-sm">
+<div class="min-h-[85vh] flex items-center justify-center py-10 px-4">
+  <div class="w-full max-w-2xl bg-white rounded-3xl border border-slate-100 p-8 sm:p-10 shadow-2xl shadow-slate-200/50 relative overflow-hidden">
     
+    <!-- Acento Superior Decorativo -->
+    <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-emerald-400 to-teal-500"></div>
+
     <!-- Encabezado -->
-    <div class="mb-6 border-b border-gray-100 pb-4">
-      <h2 class="text-xl font-bold text-gray-900">Publicar una Vacante / Empleo</h2>
-      <p class="text-xs sm:text-sm text-gray-500 mt-1">
-        Describe el trabajo que necesitas. Los profesionales de la zona se pondrán en contacto contigo por WhatsApp.
+    <div class="mb-8 space-y-2">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-100/60 text-emerald-700 text-xs font-semibold tracking-wide uppercase">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+        Nueva Oportunidad
+      </div>
+      <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight">Publicar una Vacante o Empleo</h2>
+      <p class="text-xs sm:text-sm text-slate-500 leading-relaxed">
+        Describe el trabajo que necesitas. Los profesionales de la zona se pondrán en contacto contigo de inmediato por WhatsApp.
       </p>
     </div>
 
-    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-4">
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-6">
       
       <!-- Título del Empleo -->
-      <div>
-        <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">
-          Título de la oferta o trabajo <span class="text-red-500">*</span>
+      <div class="space-y-2">
+        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+          Título de la oferta o trabajo <span class="text-emerald-500">*</span>
         </label>
-        <input
-          type="text"
-          formControlName="titulo"
-          placeholder="Ej. Se busca electricista para instalación comercial"
-          class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
+        <div class="relative">
+          <input
+            type="text"
+            formControlName="titulo"
+            placeholder="Ej. Se busca electricista para instalación comercial"
+            class="w-full text-sm text-slate-900 bg-slate-50/60 border border-slate-200/80 rounded-2xl px-4 py-3.5 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all shadow-xs"
+          />
+        </div>
         @if (form.get('titulo')?.invalid && form.get('titulo')?.touched) {
-          <p class="text-red-500 text-xs mt-1">Escribe un título claro (mínimo 5 caracteres).</p>
+          <p class="text-rose-500 text-xs font-medium pl-1">Escribe un título claro (mínimo 5 caracteres).</p>
         }
       </div>
 
       <!-- Categoría y Ubicación en 2 Columnas -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-          <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">
-            Categoría / Oficio <span class="text-red-500">*</span>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <div class="space-y-2">
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+            Categoría / Oficio <span class="text-emerald-500">*</span>
           </label>
- <select
-  formControlName="oficioId"
-  class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-  <option value="" disabled selected>Selecciona un oficio</option>
-
-  <!-- ❌ Error anterior: @for (oficio of oficios; track oficio.id) -->
-  <!-- ✅ Correcto: invocar el signal con () -->
-  @for (oficio of oficios(); track oficio.id) {
-    <option [value]="oficio.id">{{ oficio.nombre }}</option>
-  }
-</select>
+          <div class="relative">
+            <select
+              formControlName="oficioId"
+              class="w-full text-sm text-slate-900 bg-slate-50/60 border border-slate-200/80 rounded-2xl px-4 py-3.5 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all shadow-xs appearance-none cursor-pointer">
+              <option value="" disabled selected>Selecciona un oficio</option>
+              @for (oficio of oficios(); track oficio.id) {
+                <option [value]="oficio.id">{{ oficio.nombre }}</option>
+              }
+            </select>
+            <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </div>
+          </div>
           @if (form.get('oficioId')?.invalid && form.get('oficioId')?.touched) {
-            <p class="text-red-500 text-xs mt-1">Selecciona un oficio.</p>
+            <p class="text-rose-500 text-xs font-medium pl-1">Selecciona un oficio.</p>
           }
         </div>
 
-        <div>
-          <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">
-            Ubicación / Municipio <span class="text-red-500">*</span>
+        <div class="space-y-2">
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+            Ubicación / Municipio <span class="text-emerald-500">*</span>
           </label>
-          <select
-            formControlName="ubicacion"
-            class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <option value="" disabled selected>Selecciona ubicación</option>
-            @for (loc of locations; track loc) {
-              <option [value]="loc">{{ loc }}</option>
-            }
-          </select>
+          <div class="relative">
+            <select
+              formControlName="ubicacion"
+              class="w-full text-sm text-slate-900 bg-slate-50/60 border border-slate-200/80 rounded-2xl px-4 py-3.5 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all shadow-xs appearance-none cursor-pointer">
+              <option value="" disabled selected>Selecciona ubicación</option>
+              @for (loc of locations; track loc) {
+                <option [value]="loc">{{ loc }}</option>
+              }
+            </select>
+            <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </div>
+          </div>
           @if (form.get('ubicacion')?.invalid && form.get('ubicacion')?.touched) {
-            <p class="text-red-500 text-xs mt-1">Selecciona la ubicación del trabajo.</p>
+            <p class="text-rose-500 text-xs font-medium pl-1">Selecciona la ubicación del trabajo.</p>
           }
         </div>
       </div>
 
       <!-- Presupuesto y Teléfono en 2 Columnas -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-          <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <div class="space-y-2">
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
             Presupuesto estimado (MXN)
           </label>
           <input
             type="number"
             formControlName="presupuesto"
             placeholder="Ej. 500"
-            class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            class="w-full text-sm text-slate-900 bg-slate-50/60 border border-slate-200/80 rounded-2xl px-4 py-3.5 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all shadow-xs"
           />
           @if (form.get('presupuesto')?.invalid && form.get('presupuesto')?.touched) {
-            <p class="text-red-500 text-xs mt-1">Ingresa un monto válido.</p>
+            <p class="text-rose-500 text-xs font-medium pl-1">Ingresa un monto válido.</p>
           }
         </div>
 
-        <div>
-          <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">
-            Teléfono (WhatsApp) <span class="text-red-500">*</span>
+        <div class="space-y-2">
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+            Teléfono (WhatsApp) <span class="text-emerald-500">*</span>
           </label>
           <input
             type="tel"
             formControlName="telefonoContacto"
             placeholder="Ej. 9511234567"
-            class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            class="w-full text-sm text-slate-900 bg-slate-50/60 border border-slate-200/80 rounded-2xl px-4 py-3.5 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all shadow-xs"
           />
           @if (form.get('telefonoContacto')?.invalid && form.get('telefonoContacto')?.touched) {
-            <p class="text-red-500 text-xs mt-1">Ingresa un teléfono válido de 10 a 12 dígitos.</p>
+            <p class="text-rose-500 text-xs font-medium pl-1">Ingresa un teléfono válido de 10 a 12 dígitos.</p>
           }
         </div>
       </div>
 
       <!-- Descripción Detallada -->
-      <div>
-        <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">
-          Descripción del Trabajo <span class="text-red-500">*</span>
+      <div class="space-y-2">
+        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+          Descripción del Trabajo <span class="text-emerald-500">*</span>
         </label>
         <textarea
           formControlName="descripcion"
           rows="4"
-          placeholder="Detalla lo que requiere el puesto, material necesario o requisitos..."
-          class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+          placeholder="Detalla lo que requiere el puesto, material necesario o requisitos específicos..."
+          class="w-full text-sm text-slate-900 bg-slate-50/60 border border-slate-200/80 rounded-2xl p-4 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all shadow-xs resize-none"></textarea>
         @if (form.get('descripcion')?.invalid && form.get('descripcion')?.touched) {
-          <p class="text-red-500 text-xs mt-1">Proporciona detalles del trabajo (mínimo 15 caracteres).</p>
+          <p class="text-rose-500 text-xs font-medium pl-1">Proporciona detalles del trabajo (mínimo 15 caracteres).</p>
         }
       </div>
 
       <!-- Botones de Acción -->
-      <div class="pt-4 flex items-center justify-end gap-3">
+      <div class="pt-6 flex items-center justify-end gap-4 border-t border-slate-100">
         <a
           routerLink="/"
-          class="px-4 py-2.5 text-xs sm:text-sm font-medium text-gray-600 hover:text-gray-800 transition-colors">
+          class="px-5 py-3 text-xs sm:text-sm font-bold text-slate-500 hover:text-slate-800 transition-colors">
           Cancelar
         </a>
         <button
           type="submit"
           [disabled]="form.invalid"
-          class="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-semibold text-xs sm:text-sm py-2.5 px-5 rounded-lg transition-colors shadow-sm">
+          class="bg-emerald-500 hover:bg-emerald-600 active:scale-[0.98] disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed text-white font-bold text-xs sm:text-sm py-3.5 px-7 rounded-2xl transition-all shadow-lg shadow-emerald-500/20 cursor-pointer">
           Publicar Oferta
         </button>
       </div>

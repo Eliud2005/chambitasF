@@ -2,11 +2,12 @@ import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } 
 import { JobCard } from '../job-card/job-card';
 import { JobFilter } from '../job-filter/job-filter';
 import { JobService } from '../../services/job.service';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 
 @Component({
   selector: 'app-job-feed',
   standalone: true,
-  imports: [JobCard, JobFilter],
+  imports: [JobCard, JobFilter, RouterLink, RouterLinkActive],
   templateUrl: './job-feed.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

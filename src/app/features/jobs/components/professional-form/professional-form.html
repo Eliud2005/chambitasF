@@ -1,145 +1,151 @@
-<div class="bg-white rounded-xl border border-gray-200 p-6 shadow-sm max-w-xl mx-auto">
-  <div class="mb-6">
-    <h2 class="text-xl font-bold text-gray-900">Registrarme como Profesional</h2>
-    <p class="text-sm text-gray-500 mt-1">
+<div class="bg-white rounded-2xl border border-gray-100 p-6 sm:p-8 shadow-xl shadow-gray-100 max-w-2xl mx-auto my-8">
+  <div class="mb-6 space-y-1">
+    <h2 class="text-xl font-bold text-gray-900 tracking-tight">Registrarme como Profesional</h2>
+    <p class="text-sm text-gray-500">
       Crea tu cuenta de trabajador para ofrecer tus servicios y recibir mensajes directos por WhatsApp.
     </p>
   </div>
 
   <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-4">
     
+    <!-- Nombre y Apellido -->
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <div>
-        <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">
-          Nombre <span class="text-red-500">*</span>
+        <label class="block text-[11px] font-semibold text-gray-600 uppercase tracking-wider mb-1.5">
+          Nombre <span class="text-emerald-600">*</span>
         </label>
         <input
           type="text"
           formControlName="nombre"
           placeholder="Ej. José Luis"
-          class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          class="w-full text-sm border border-gray-200 bg-gray-50/50 rounded-xl px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
         />
         @if (form.get('nombre')?.invalid && form.get('nombre')?.touched) {
-          <p class="text-red-500 text-xs mt-1">Ingresa tu nombre (mínimo 2 caracteres).</p>
+          <p class="text-red-500 text-xs mt-1.5 font-medium">Ingresa tu nombre (mínimo 2 caracteres).</p>
         }
       </div>
 
       <div>
-        <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">
-          Apellido <span class="text-red-500">*</span>
+        <label class="block text-[11px] font-semibold text-gray-600 uppercase tracking-wider mb-1.5">
+          Apellido <span class="text-emerald-600">*</span>
         </label>
         <input
           type="text"
           formControlName="apellido"
           placeholder="Ej. Mendoza"
-          class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          class="w-full text-sm border border-gray-200 bg-gray-50/50 rounded-xl px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
         />
         @if (form.get('apellido')?.invalid && form.get('apellido')?.touched) {
-          <p class="text-red-500 text-xs mt-1">Ingresa tu apellido (mínimo 2 caracteres).</p>
+          <p class="text-red-500 text-xs mt-1.5 font-medium">Ingresa tu apellido (mínimo 2 caracteres).</p>
         }
       </div>
     </div>
 
+    <!-- Correo y Contraseña -->
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <div>
-        <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">
-          Correo Electrónico <span class="text-red-500">*</span>
+        <label class="block text-[11px] font-semibold text-gray-600 uppercase tracking-wider mb-1.5">
+          Correo Electrónico <span class="text-emerald-600">*</span>
         </label>
         <input
           type="email"
           formControlName="email"
           placeholder="ejemplo@correo.com"
-          class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          class="w-full text-sm border border-gray-200 bg-gray-50/50 rounded-xl px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
         />
         @if (form.get('email')?.invalid && form.get('email')?.touched) {
-          <p class="text-red-500 text-xs mt-1">Ingresa un correo electrónico válido.</p>
+          <p class="text-red-500 text-xs mt-1.5 font-medium">Ingresa un correo electrónico válido.</p>
         }
       </div>
 
       <div>
-        <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">
-          Contraseña <span class="text-red-500">*</span>
+        <label class="block text-[11px] font-semibold text-gray-600 uppercase tracking-wider mb-1.5">
+          Contraseña <span class="text-emerald-600">*</span>
         </label>
         <input
           type="password"
           formControlName="password"
           placeholder="Mínimo 6 caracteres"
-          class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          class="w-full text-sm border border-gray-200 bg-gray-50/50 rounded-xl px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
         />
         @if (form.get('password')?.invalid && form.get('password')?.touched) {
-          <p class="text-red-500 text-xs mt-1">La contraseña debe tener al menos 6 caracteres.</p>
+          <p class="text-red-500 text-xs mt-1.5 font-medium">La contraseña debe tener al menos 6 caracteres.</p>
         }
       </div>
     </div>
 
+    <!-- Teléfono y Zona de Cobertura -->
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <div>
-        <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">
-          Teléfono de WhatsApp <span class="text-red-500">*</span>
+        <label class="block text-[11px] font-semibold text-gray-600 uppercase tracking-wider mb-1.5">
+          Teléfono de WhatsApp <span class="text-emerald-600">*</span>
         </label>
         <input
           type="tel"
           formControlName="telefono"
           placeholder="Ej. 9511234567"
-          class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          class="w-full text-sm border border-gray-200 bg-gray-50/50 rounded-xl px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
         />
         @if (form.get('telefono')?.invalid && form.get('telefono')?.touched) {
-          <p class="text-red-500 text-xs mt-1">Ingresa un número válido a 10 dígitos.</p>
+          <p class="text-red-500 text-xs mt-1.5 font-medium">Ingresa un número válido a 10 dígitos.</p>
         }
       </div>
 
       <div>
-        <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">
-          Zona de Cobertura <span class="text-red-500">*</span>
+        <label class="block text-[11px] font-semibold text-gray-600 uppercase tracking-wider mb-1.5">
+          Zona de Cobertura <span class="text-emerald-600">*</span>
         </label>
         <select
           formControlName="zonaCobertura"
-          class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+          class="w-full text-sm border border-gray-200 bg-gray-50/50 rounded-xl px-4 py-3 text-gray-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all cursor-pointer">
           <option value="" disabled selected>Selecciona tu municipio / zona</option>
           @for (loc of locations; track loc) {
             <option [value]="loc">{{ loc }}</option>
           }
         </select>
         @if (form.get('zonaCobertura')?.invalid && form.get('zonaCobertura')?.touched) {
-          <p class="text-red-500 text-xs mt-1">Selecciona tu zona de trabajo principal.</p>
+          <p class="text-red-500 text-xs mt-1.5 font-medium">Selecciona tu zona de trabajo principal.</p>
         }
       </div>
     </div>
 
+    <!-- Experiencia -->
     <div>
-      <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">
-        Experiencia o Trayectoria <span class="text-red-500">*</span>
+      <label class="block text-[11px] font-semibold text-gray-600 uppercase tracking-wider mb-1.5">
+        Experiencia o Trayectoria <span class="text-emerald-600">*</span>
       </label>
       <input
         type="text"
         formControlName="experiencia"
         placeholder="Ej. 5 años trabajando en instalaciones residenciales y comerciales"
-        class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        class="w-full text-sm border border-gray-200 bg-gray-50/50 rounded-xl px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
       />
       @if (form.get('experiencia')?.invalid && form.get('experiencia')?.touched) {
-        <p class="text-red-500 text-xs mt-1">Detalla brevemente tu tiempo o experiencia laboral.</p>
+        <p class="text-red-500 text-xs mt-1.5 font-medium">Detalla brevemente tu tiempo o experiencia laboral.</p>
       }
     </div>
 
+    <!-- Descripción -->
     <div>
-      <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">
-        Descripción de tus Trabajos y Servicios <span class="text-red-500">*</span>
+      <label class="block text-[11px] font-semibold text-gray-600 uppercase tracking-wider mb-1.5">
+        Descripción de tus Trabajos y Servicios <span class="text-emerald-600">*</span>
       </label>
       <textarea
         formControlName="descripcion"
         rows="3"
         placeholder="Ej. Especialista en reparación de fugas, mantenimiento preventivo, colocación de tinacos y bombas de agua. Presupuestos sin compromiso."
-        class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+        class="w-full text-sm border border-gray-200 bg-gray-50/50 rounded-xl px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all resize-none"></textarea>
       @if (form.get('descripcion')?.invalid && form.get('descripcion')?.touched) {
-        <p class="text-red-500 text-xs mt-1">Describe brevemente lo que haces (mínimo 15 caracteres).</p>
+        <p class="text-red-500 text-xs mt-1.5 font-medium">Describe brevemente lo que haces (mínimo 15 caracteres).</p>
       }
     </div>
 
-    <div class="pt-2">
+    <!-- Botón de Envío -->
+    <div class="pt-3">
       <button
         type="submit"
         [disabled]="form.invalid"
-        class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-medium text-sm py-3 px-4 rounded-lg transition-colors">
+        class="w-full bg-emerald-500 hover:bg-emerald-600 active:scale-95 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed disabled:active:scale-100 text-white font-medium text-sm py-3.5 px-4 rounded-xl shadow-sm hover:shadow-md hover:shadow-emerald-500/10 transition-all cursor-pointer">
         Completar Registro de Profesional
       </button>
     </div>

@@ -55,6 +55,11 @@ export const routes: Routes = [
     component: JobCreateForm,
     canActivate: [authGuard]
   },
+  {
+    path: 'registro-empleo',
+    component: JobCreateForm,
+    canActivate: [authGuard]
+  },
 
   // Ruta comodín para URLs no encontradas
   { path: '**', redirectTo: 'jobs' },

@@ -1,36 +1,40 @@
-<section class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-  <header class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+<section class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-6">
+  
+  <!-- Encabezado -->
+  <header class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
     <div>
       <h2 class="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">
         Directorio de Trabajadores
       </h2>
-      <p class="mt-1 text-sm text-gray-500 sm:text-base">
+      <p class="mt-1.5 text-sm text-gray-500 sm:text-base">
         Conecta directamente por WhatsApp con trabajadores de oficio locales
       </p>
     </div>
 
-    <!--
+    <!-- 
     <div>
       <a 
         routerLink="/registro-profesional"
-        class="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
+        class="inline-flex items-center justify-center rounded-xl bg-emerald-500 hover:bg-emerald-600 active:scale-95 px-5 py-3 text-sm font-medium text-white shadow-sm hover:shadow-md hover:shadow-emerald-500/10 transition-all cursor-pointer">
         + Registrarme como Trabajador
       </a>
     </div>
     --> 
   </header>
 
-  <div class="mb-6 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3 items-center">
+  <!-- Panel de Filtros -->
+  <div class="rounded-2xl border border-gray-100 bg-white p-5 shadow-xl shadow-gray-100">
+    <div class="grid grid-cols-1 gap-5 sm:grid-cols-3 items-center">
       
+      <!-- Zona o Municipio -->
       <div>
-        <label class="block text-xs font-semibold uppercase tracking-wider text-gray-600 mb-1">
+        <label class="block text-[11px] font-semibold uppercase tracking-wider text-gray-600 mb-2">
           Zona o Municipio
         </label>
         <select 
           [ngModel]="selectedZona()" 
           (ngModelChange)="selectedZona.set($event); onFilterChange()"
-          class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+          class="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-sm text-gray-900 focus:bg-white focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all cursor-pointer">
           <option value="">Todas las zonas</option>
           @for (loc of locations; track loc) {
             <option [value]="loc">{{ loc }}</option>
@@ -38,14 +42,15 @@
         </select>
       </div>
 
+      <!-- Oficio -->
       <div>
-        <label class="block text-xs font-semibold uppercase tracking-wider text-gray-600 mb-1">
+        <label class="block text-[11px] font-semibold uppercase tracking-wider text-gray-600 mb-2">
           Oficio
         </label>
         <select 
           [ngModel]="selectedOficioId()" 
           (ngModelChange)="selectedOficioId.set($event); onFilterChange()"
-          class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+          class="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-sm text-gray-900 focus:bg-white focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all cursor-pointer">
           <option value="">Todos los oficios</option>
           @for (oficio of oficios(); track oficio.id) {
             <option [value]="oficio.id">{{ oficio.nombre }}</option>
@@ -53,14 +58,15 @@
         </select>
       </div>
 
-      <div class="flex items-center sm:pt-5">
-        <label class="relative inline-flex items-center cursor-pointer">
+      <!-- Switch de Disponibilidad -->
+      <div class="flex items-center sm:pt-6">
+        <label class="relative inline-flex items-center cursor-pointer select-none">
           <input 
             type="checkbox" 
             [checked]="onlyAvailable()" 
             (change)="onlyAvailable.set(!onlyAvailable()); onFilterChange()" 
             class="sr-only peer">
-          <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+          <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
           <span class="ms-3 text-sm font-medium text-gray-700">Solo disponibles</span>
         </label>
       </div>
@@ -68,16 +74,25 @@
     </div>
   </div>
 
+  <!-- Grid de Profesionales / Empty State -->
   <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
     @for (prof of professionals(); track prof.id) {
       <app-professional-card [professional]="prof" />
     } @empty {
-      <div class="col-span-full rounded-xl border border-dashed border-gray-300 bg-white py-12 text-center">
-        <p class="text-base font-medium text-gray-900">No se encontraron profesionales registrados</p>
-        <p class="mt-1 text-sm text-gray-500">
-          Prueba seleccionando otra zona o quitando los filtros de búsqueda.
-        </p>
+      <div class="col-span-full rounded-2xl border border-dashed border-gray-200 bg-white py-16 px-4 text-center space-y-3">
+        <div class="w-12 h-12 bg-gray-50 text-gray-400 rounded-2xl flex items-center justify-center mx-auto border border-gray-100">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+          </svg>
+        </div>
+        <div class="space-y-1">
+          <p class="text-sm font-semibold text-gray-900">No se encontraron profesionales registrados</p>
+          <p class="text-xs text-gray-500 max-w-sm mx-auto">
+            Prueba seleccionando otra zona o quitando los filtros de búsqueda.
+          </p>
+        </div>
       </div>
     }
   </div>
+
 </section>
